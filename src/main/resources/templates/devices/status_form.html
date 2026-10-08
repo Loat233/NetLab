@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改设备状态</title>
+</head>
+<body>
+
+<h2>修改设备状态</h2>
+
+<p>
+    资产编号：
+    <span th:text="${device.assetCode}"></span>
+</p>
+
+<p>
+    设备名称：
+    <span th:text="${device.deviceName}"></span>
+</p>
+
+<p>
+    当前状态：
+    <span th:text="${device.status.label}"></span>
+</p>
+
+<form th:action="@{/admin/devices/{id}/status(id=${device.id})}"
+      method="post">
+
+    <label for="status">新状态：</label>
+
+    <select id="status" name="status" required>
+        <option th:each="status : ${statuses}"
+                th:value="${status.name()}"
+                th:text="${status.label}"
+                th:selected="${status == device.status}">
+        </option>
+    </select>
+
+    <button type="submit">确认修改</button>
+
+    <a th:href="@{/devices}">取消</a>
+</form>
+
+</body>
+</html>

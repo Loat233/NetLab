@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备详情 - NetLab</title>
+    <link rel="stylesheet" th:href="@{/component/pear/css/pear.css}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: #f4f7fb; color: #263445; font-family: "Microsoft YaHei", Arial, sans-serif; }
+        .page-shell { max-width: 900px; margin: 0 auto; padding: 34px 20px 56px; }
+        .back-link { display: inline-block; margin-bottom: 18px; color: #607080; text-decoration: none; }
+        .back-link:hover { color: #16baaa; }
+        .card { background: #fff; border: 1px solid #e8edf3; border-radius: 14px; box-shadow: 0 10px 30px rgba(31,45,61,.07); overflow: hidden; }
+        .hero { padding: 30px; background: linear-gradient(135deg, #effdfa, #f7fbff); border-bottom: 1px solid #e8edf3; }
+        .hero h1 { margin: 0 0 10px; font-size: 28px; }
+        .asset-code { color: #728091; font-family: Consolas, monospace; }
+        .details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 8px 30px; }
+        .item { padding: 20px 0; border-bottom: 1px solid #edf0f4; }
+        .item:nth-child(odd) { padding-right: 24px; }
+        .item span { display: block; margin-bottom: 7px; color: #8a94a3; font-size: 13px; }
+        .item strong { font-size: 15px; }
+        .description { grid-column: 1 / -1; }
+        .status { display: inline-flex; padding: 5px 11px; border-radius: 999px; background: #e8faf6; color: #078d79; }
+        .actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px 30px 28px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; min-width: 112px; height: 42px; padding: 0 18px; border: 1px solid #d8dee7; border-radius: 8px; color: #4d5968; background: #fff; text-decoration: none; }
+        .button.primary { border-color: #16baaa; background: #16baaa; color: #fff; }
+        .button.disabled { cursor: not-allowed; opacity: .55; }
+        @media (max-width: 620px) {
+            .details { grid-template-columns: 1fr; }
+            .item:nth-child(odd) { padding-right: 0; }
+            .description { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell">
+    <a class="back-link" th:href="@{/devices}">← 返回设备列表</a>
+
+    <section class="card">
+        <div class="hero">
+            <h1 th:text="${device.deviceName}">设备名称</h1>
+            <div class="asset-code" th:text="|资产编号：${device.assetCode}|">资产编号：SW-001</div>
+        </div>
+
+        <div class="details">
+            <div class="item">
+                <span>设备型号</span>
+                <strong th:text="${#strings.isEmpty(device.model) ? '未填写' : device.model}">设备型号</strong>
+            </div>
+            <div class="item">
+                <span>设备状态</span>
+                <strong class="status" th:text="${device.status.label}">可用</strong>
+            </div>
+            <div class="item">
+                <span>设备分类 ID</span>
+                <strong th:text="${device.categoryId}">1</strong>
+            </div>
+            <div class="item">
+                <span>实验室 ID</span>
+                <strong th:text="${device.laboratoryId}">1</strong>
+            </div>
+            <div class="item description">
+                <span>设备说明</span>
+                <strong th:text="${#strings.isEmpty(device.description) ? '暂无说明' : device.description}">暂无说明</strong>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a class="button" th:href="@{/my/reservations}">我的预约</a>
+            <a class="button primary"
+               th:if="${device.status.name() == 'AVAILABLE' or device.status.name() == 'BORROWED'}"
+               th:href="@{/devices/{id}/reserve(id=${device.id})}">立即预约</a>
+            <span class="button disabled"
+                  th:unless="${device.status.name() == 'AVAILABLE' or device.status.name() == 'BORROWED'}">当前不可预约</span>
+        </div>
+    </section>
+</main>
+</body>
+</html>

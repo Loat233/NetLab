@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+    <body>
+    <table>
+        <thead>
+        <tr>
+            <th>资产编号</th>
+            <th>设备名称</th>
+            <th>型号</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="device : ${devices}">
+            <td th:text="${device.assetCode}"></td>
+            <td th:text="${device.deviceName}"></td>
+            <td th:text="${device.model}"></td>
+            <td th:text="${device.status}"></td>
+            <td>
+                <a th:href="@{/devices/{id}(id=${device.id})}">
+                    查看详情
+                </a>
+                <a th:href="@{/admin/devices/{id}/edit(id=${device.id})}">
+                    编辑
+                </a>
+                <a th:href="@{/admin/devices/{id}/status(id=${device.id})}">
+                    修改状态
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/admin/devices/add}">
+        添加设备
+    </a>
+    <div th:if="${message}"
+         th:text="${message}"
+         style="color: green">
+    </div>
+</body>
+</html>

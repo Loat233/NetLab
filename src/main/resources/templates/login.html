@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN"
+	xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8">
+		<title>Login Page</title>
+		<!-- 样 式 文 件 -->
+		<link rel="stylesheet" href="/component/pear/css/pear.css" />
+		<link rel="stylesheet" href="/admin/css/other/login.css" />
+	</head>
+    <!-- 代 码 结 构 -->
+	<body background="/admin/images/background2.svg" style="background-size: cover;">
+		<form class="layui-form" th:action="@{/doLogin}" method="post">
+			<div class="layui-form-item">
+				<img class="logo" src="/admin/images/logo.png" />
+				<div class="title">NetLab System</div>
+				<div class="desc">
+					网 络 实 验 室 设 备 预 约 平 台
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label>
+					<input type="text"
+						   name="username"
+						   placeholder="邮箱账号:"
+						   class="layui-input"
+						   required/>
+				</label>
+			</div>
+			<div class="layui-form-item">
+				<label>
+					<input type="password"
+						   name="password"
+						   placeholder="密码:"
+						   class="layui-input"
+						   required/>
+				</label>
+			</div>
+			<div class="layui-form-item">
+				<div class="verification-row">
+					<label>
+						<input type="text"
+							   name="code"
+							   placeholder="验证码:"
+							   class="layui-input"
+							   required/>
+					</label>
+					<button
+							type="button"
+							id="sendCodeButton"
+							class="pear-btn pear-btn-primary send-code-button">
+						发送验证码
+					</button>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<input type="checkbox"
+					   name="remember-me"
+					   value="true"
+					   title="记住我"
+					   lay-skin="primary">
+			</div>
+			<div class="layui-form-item">
+				<div th:if="${param.codeError}" style="color: red">
+					验证码错误或已过期
+				</div>
+				<div th:if="${param.error}" style="color: red">
+					邮箱或密码错误
+				</div>
+				<button type="submit" class="pear-btn pear-btn-success login">
+					登录
+				</button>
+			</div>
+		</form>
+		<!-- 资 源 引 入 -->
+		<script src="/component/layui/layui.js"></script>
+		<script src="/component/pear/pear.js"></script>
+		<script>
+			layui.use(['form'], function () {
+				layui.form.render('checkbox');
+			});
+
+			const sendButton =
+					document.getElementById('sendCodeButton');
+
+			sendButton.addEventListener('click', async function () {
+				const username = document
+						.querySelector('[name="username"]')
+						.value
+						.trim();
+
+				if (!username) {
+					alert('请先输入邮箱');
+					return;
+				}
+
+				sendButton.disabled = true;
+				sendButton.textContent = '发送中...';
+
+				try {
+					const response = await fetch(
+							'/auth/verification-code/send',
+							{
+								method: 'POST',
+								headers: {
+									'Content-Type':
+											'application/x-www-form-urlencoded;charset=UTF-8'
+								},
+								body: new URLSearchParams({
+									username: username
+								})
+							}
+					);
+
+					const result = await response.json();
+
+					if (!response.ok) {
+						throw new Error(
+								result.message || '验证码发送失败'
+						);
+					}
+
+					alert(result.message);
+					startCountdown();
+
+				} catch (error) {
+					alert(error.message);
+
+					sendButton.disabled = false;
+					sendButton.textContent = '发送验证码';
+				}
+			});
+
+			function startCountdown() {
+				let seconds = 60;
+
+				sendButton.textContent = `${seconds} 秒后重发`;
+
+				const timer = setInterval(function () {
+					seconds--;
+
+					if (seconds <= 0) {
+						clearInterval(timer);
+						sendButton.disabled = false;
+						sendButton.textContent = '发送验证码';
+						return;
+					}
+
+					sendButton.textContent = `${seconds} 秒后重发`;
+				}, 1000);
+			}
+		</script>
+	</body>
+</html>

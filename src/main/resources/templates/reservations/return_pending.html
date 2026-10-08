@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>申请归还</title>
+</head>
+<body>
+
+<h2>申请归还设备</h2>
+
+<p>
+    预约编号：
+    <span th:text="${reservation.reservationCode}"></span>
+</p>
+
+<p>
+    预约结束时间：
+    <span th:text="${#temporals.format(
+        reservation.endTime,
+        'yyyy-MM-dd HH:mm'
+    )}"></span>
+</p>
+
+<form th:action="@{/my/reservations/{id}/return(
+        id=${reservation.id}
+    )}"
+      method="post">
+
+    <button type="submit">确认申请归还</button>
+
+    <a th:href="@{/my/reservations}">取消</a>
+</form>
+
+</body>
+</html>

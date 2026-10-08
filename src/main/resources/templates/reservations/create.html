@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交设备预约 - NetLab</title>
+    <link rel="stylesheet" th:href="@{/component/pear/css/pear.css}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: #f4f7fb; color: #263445; font-family: "Microsoft YaHei", Arial, sans-serif; }
+        .page-shell { max-width: 920px; margin: 0 auto; padding: 32px 20px 56px; }
+        .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .page-head h1 { margin: 0; font-size: 26px; }
+        .back-link { color: #5f6b7a; text-decoration: none; }
+        .back-link:hover { color: #16baaa; }
+        .card { background: #fff; border: 1px solid #e8edf3; border-radius: 14px; box-shadow: 0 10px 30px rgba(31, 45, 61, .07); overflow: hidden; }
+        .device-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 28px; padding: 24px 28px; background: linear-gradient(135deg, #f1fffc, #f7fbff); border-bottom: 1px solid #e8edf3; }
+        .summary-title { grid-column: 1 / -1; margin: 0 0 2px; font-size: 20px; }
+        .summary-item span { display: block; color: #8793a2; font-size: 13px; margin-bottom: 5px; }
+        .summary-item strong { font-size: 15px; font-weight: 600; }
+        .status { display: inline-flex; padding: 4px 10px; border-radius: 999px; background: #e8faf6; color: #09937f; font-size: 13px; }
+        .form-area { padding: 28px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+        .field.full { grid-column: 1 / -1; }
+        .field label { display: block; margin-bottom: 9px; font-weight: 600; }
+        .required { color: #e34d59; margin-left: 3px; }
+        .layui-input, .layui-textarea { border-radius: 8px; border-color: #dce3eb; }
+        .layui-input { height: 44px; }
+        .layui-textarea { min-height: 120px; resize: vertical; }
+        .hint { margin-top: 7px; color: #9099a7; font-size: 13px; }
+        .counter { float: right; }
+        .alert { margin-bottom: 20px; padding: 12px 15px; border-radius: 8px; background: #fff1f0; border: 1px solid #ffccc7; color: #cf1322; }
+        .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; min-width: 112px; height: 42px; border-radius: 8px; border: 1px solid #d8dee7; background: #fff; color: #4d5968; cursor: pointer; text-decoration: none; }
+        .button.primary { border-color: #16baaa; background: #16baaa; color: #fff; }
+        .button.primary:hover { background: #0da493; }
+        .button:disabled { cursor: not-allowed; opacity: .65; }
+        @media (max-width: 680px) {
+            .device-summary, .form-grid { grid-template-columns: 1fr; }
+            .summary-title, .field.full { grid-column: auto; }
+            .page-head { align-items: flex-start; gap: 14px; }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell">
+    <div class="page-head">
+        <div>
+            <h1>提交设备预约</h1>
+            <p style="margin: 7px 0 0; color: #7a8594;">填写使用时间和实验用途，提交后等待管理员审核。</p>
+        </div>
+        <a class="back-link" th:href="@{/devices/{id}(id=${device.id})}">← 返回设备详情</a>
+    </div>
+
+    <section class="card">
+        <div class="device-summary">
+            <h2 class="summary-title" th:text="${device.deviceName}">设备名称</h2>
+            <div class="summary-item">
+                <span>资产编号</span>
+                <strong th:text="${device.assetCode}">SW-001</strong>
+            </div>
+            <div class="summary-item">
+                <span>设备型号</span>
+                <strong th:text="${#strings.isEmpty(device.model) ? '未填写' : device.model}">设备型号</strong>
+            </div>
+            <div class="summary-item">
+                <span>当前状态</span>
+                <strong class="status" th:text="${device.status.label}">可用</strong>
+            </div>
+            <div class="summary-item">
+                <span>设备说明</span>
+                <strong th:text="${#strings.isEmpty(device.description) ? '暂无说明' : device.description}">暂无说明</strong>
+            </div>
+        </div>
+
+        <div class="form-area">
+            <div class="alert" th:if="${error}" th:text="${error}">预约提交失败</div>
+
+            <form id="reservationForm" th:action="@{/reservations}" th:object="${reservationRequest}" method="post">
+                <input type="hidden" th:field="*{deviceId}">
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="startTime">开始时间<span class="required">*</span></label>
+                        <input id="startTime" class="layui-input" type="datetime-local" th:field="*{startTime}" required>
+                        <div class="hint">请选择预计领取并开始使用设备的时间。</div>
+                    </div>
+
+                    <div class="field">
+                        <label for="endTime">结束时间<span class="required">*</span></label>
+                        <input id="endTime" class="layui-input" type="datetime-local" th:field="*{endTime}" required>
+                        <div class="hint">结束时间必须晚于开始时间。</div>
+                    </div>
+
+                    <div class="field full">
+                        <label for="purpose">实验用途</label>
+                        <textarea id="purpose" class="layui-textarea" th:field="*{purpose}" maxlength="500" placeholder="例如：进行 OSPF 动态路由配置实验"></textarea>
+                        <div class="hint">
+                            请简要说明实验内容，便于管理员审核。
+                            <span class="counter"><span id="purposeCount">0</span>/500</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <a class="button" th:href="@{/devices/{id}(id=${device.id})}">取消</a>
+                    <button id="submitButton" class="button primary" type="submit">提交预约</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script>
+    const startInput = document.getElementById('startTime');
+    const endInput = document.getElementById('endTime');
+    const purposeInput = document.getElementById('purpose');
+    const purposeCount = document.getElementById('purposeCount');
+    const form = document.getElementById('reservationForm');
+    const submitButton = document.getElementById('submitButton');
+
+    function toLocalMinuteString(date) {
+        const offset = date.getTimezoneOffset();
+        return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
+    }
+
+    const now = new Date();
+    now.setSeconds(0, 0);
+    startInput.min = toLocalMinuteString(now);
+    endInput.min = startInput.min;
+
+    startInput.addEventListener('change', function () {
+        endInput.min = startInput.value || toLocalMinuteString(now);
+        if (endInput.value && endInput.value <= startInput.value) {
+            endInput.value = '';
+        }
+    });
+
+    purposeInput.addEventListener('input', function () {
+        purposeCount.textContent = purposeInput.value.length;
+    });
+    purposeCount.textContent = purposeInput.value.length;
+
+    form.addEventListener('submit', function (event) {
+        if (endInput.value <= startInput.value) {
+            event.preventDefault();
+            alert('结束时间必须晚于开始时间');
+            return;
+        }
+        submitButton.disabled = true;
+        submitButton.textContent = '正在提交...';
+    });
+</script>
+</body>
+</html>

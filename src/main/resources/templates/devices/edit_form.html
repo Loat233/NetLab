@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>修改设备</title>
+</head>
+
+<body>
+
+<h2>修改设备</h2>
+
+<form th:action="@{/admin/devices/{id}/edit(id=${device.id})}"
+      th:object="${device}"
+      method="post">
+
+    <div>
+        <label>资产编号</label>
+        <input type="text"
+               th:field="*{assetCode}"
+               required>
+    </div>
+
+    <div>
+        <label>设备名称</label>
+        <input type="text"
+               th:field="*{deviceName}"
+               required>
+    </div>
+
+    <div>
+        <label>设备分类</label>
+        <select th:field="*{categoryId}" required>
+            <option value="">请选择分类</option>
+
+            <option th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.categoryName}">
+            </option>
+        </select>
+    </div>
+
+    <div>
+        <label>所属实验室</label>
+        <select th:field="*{laboratoryId}" required>
+            <option value="">请选择实验室</option>
+
+            <option th:each="laboratory : ${laboratories}"
+                    th:value="${laboratory.id}"
+                    th:text="${laboratory.labName}">
+            </option>
+        </select>
+    </div>
+
+    <div>
+        <label>设备型号</label>
+        <input type="text"
+               th:field="*{model}">
+    </div>
+
+    <div>
+        <label>设备描述</label>
+        <textarea th:field="*{description}"></textarea>
+    </div>
+
+    <button type="submit">保存修改</button>
+
+    <a th:href="@{/devices}">取消</a>
+</form>
+
+</body>
+</html>

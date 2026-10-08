@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>取消预约</title>
+</head>
+<body>
+<h2>取消预约</h2>
+
+<p>
+  预约编号：
+  <span th:text="${reservation.reservationCode}"></span>
+</p>
+
+<form th:action="@{/my/reservations/{id}/cancel(id=${reservation.id})}"
+      method="post">
+
+  <label for="reason">取消原因</label>
+
+  <textarea id="reason"
+            name="reason"
+            maxlength="500"
+            placeholder="请填写取消原因"
+            required></textarea>
+
+  <button type="submit">确认取消</button>
+
+  <a th:href="@{/my/reservations}">返回列表</a>
+</form>
+</body>
+</html>

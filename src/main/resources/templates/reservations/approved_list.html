@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>待确认借出</title>
+</head>
+<body>
+
+<div th:if="${message}" th:text="${message}"></div>
+<div th:if="${error}" th:text="${error}"></div>
+
+<table>
+    <thead>
+    <tr>
+        <th>预约编号</th>
+        <th>开始时间</th>
+        <th>结束时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="reservation : ${reservations}">
+        <td th:text="${reservation.reservationCode}"></td>
+        <td th:text="${reservation.startTime}"></td>
+        <td th:text="${reservation.endTime}"></td>
+        <td>
+            <form th:action="@{/admin/reservations/{id}/borrow(
+                    id=${reservation.id})}"
+                  method="post">
+
+                <button type="submit">
+                    确认借出
+                </button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

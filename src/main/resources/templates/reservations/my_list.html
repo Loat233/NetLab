@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的预约 - NetLab</title>
+    <link rel="stylesheet" th:href="@{/component/pear/css/pear.css}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: #f4f7fb; color: #263445; font-family: "Microsoft YaHei", Arial, sans-serif; }
+        .page-shell { max-width: 1180px; margin: 0 auto; padding: 32px 20px 56px; }
+        .page-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+        .page-head h1 { margin: 0; font-size: 26px; }
+        .page-head p { margin: 7px 0 0; color: #7a8594; }
+        .head-actions { display: flex; gap: 10px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; min-width: 106px; height: 40px; padding: 0 16px; border: 1px solid #d8dee7; border-radius: 8px; color: #4d5968; background: #fff; text-decoration: none; }
+        .button.primary { border-color: #16baaa; background: #16baaa; color: #fff; }
+        .message { margin-bottom: 18px; padding: 13px 16px; border: 1px solid #b7ebd2; border-radius: 8px; background: #f0fff7; color: #168a5b; }
+        .message.error {
+            border-color: #ffccc7;
+            background: #fff1f0;
+            color: #cf1322;
+        }
+        .card { background: #fff; border: 1px solid #e8edf3; border-radius: 14px; box-shadow: 0 10px 30px rgba(31, 45, 61, .06); overflow: hidden; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 920px; }
+        th { padding: 15px 16px; background: #f8fafc; border-bottom: 1px solid #e8edf3; color: #667182; font-size: 13px; font-weight: 600; text-align: left; white-space: nowrap; }
+        td { padding: 16px; border-bottom: 1px solid #eef1f5; vertical-align: middle; }
+        tbody tr:hover { background: #fbfdfd; }
+        tbody tr:last-child td { border-bottom: 0; }
+        .code { color: #1e2c3b; font-family: Consolas, monospace; font-size: 13px; }
+        .purpose { max-width: 230px; color: #5f6977; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .status-tag { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: #f0f2f5; color: #667182; }
+        .status-tag[data-status="PENDING"] { background: #fff7e6; color: #d48806; }
+        .status-tag[data-status="APPROVED"] { background: #e8faf6; color: #078d79; }
+        .status-tag[data-status="REJECTED"] { background: #fff1f0; color: #cf1322; }
+        .status-tag[data-status="CANCELLED"] { background: #f0f2f5; color: #77808d; }
+        .status-tag[data-status="BORROWED"] { background: #e6f4ff; color: #1677ff; }
+        .status-tag[data-status="RETURN_PENDING"] { background: #f9f0ff; color: #722ed1; }
+        .status-tag[data-status="COMPLETED"] { background: #f6ffed; color: #389e0d; }
+        .device-link { color: #16a795; text-decoration: none; }
+        .device-link:hover { text-decoration: underline; }
+        .empty { padding: 72px 20px; text-align: center; }
+        .empty-icon { width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%; background: #edf9f7; color: #16baaa; font-size: 30px; line-height: 64px; }
+        .empty h2 { margin: 0 0 9px; font-size: 20px; }
+        .empty p { margin: 0 0 22px; color: #7a8594; }
+        @media (max-width: 680px) {
+            .page-head { align-items: flex-start; flex-direction: column; }
+            .head-actions { width: 100%; }
+            .head-actions .button { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell">
+    <div class="page-head">
+        <div>
+            <h1>我的预约</h1>
+            <p>查看预约审核状态和设备使用时间。</p>
+        </div>
+        <div class="head-actions">
+            <a class="button" th:href="@{/index}">返回首页</a>
+            <a class="button primary" th:href="@{/devices}">预约设备</a>
+        </div>
+    </div>
+
+    <div class="message" th:if="${message}" th:text="${message}">预约申请已提交</div>
+    <div class="message error"
+         role="alert"
+         th:if="${error != null}"
+         th:text="${error}">
+    </div>
+
+    <section class="card">
+        <div class="empty" th:if="${#lists.isEmpty(reservations)}">
+            <div class="empty-icon">⌁</div>
+            <h2>暂时没有预约记录</h2>
+            <p>先去设备列表选择需要使用的实验设备。</p>
+            <a class="button primary" th:href="@{/devices}">查看设备</a>
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(reservations)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>预约编号</th>
+                    <th>设备</th>
+                    <th>预约时间</th>
+                    <th>实验用途</th>
+                    <th>状态</th>
+                    <th>提交时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="reservation : ${reservations}">
+                    <td class="code" th:text="${reservation.reservationCode}">RSV-0001</td>
+                    <td>
+                        <a class="device-link" th:href="@{/devices/{id}(id=${reservation.deviceId})}" th:text="|设备 #${reservation.deviceId}|">设备 #1</a>
+                    </td>
+                    <td>
+                        <div th:text="${#temporals.format(reservation.startTime, 'yyyy-MM-dd HH:mm')}">2026-10-06 09:00</div>
+                        <div style="margin-top: 4px; color: #8a94a3;" th:text="|至 ${#temporals.format(reservation.endTime, 'yyyy-MM-dd HH:mm')}|">至 2026-10-06 11:00</div>
+                    </td>
+                    <td class="purpose" th:title="${reservation.purpose}" th:text="${#strings.isEmpty(reservation.purpose) ? '未填写' : reservation.purpose}">实验用途</td>
+                    <td>
+                        <span class="status-tag" th:attr="data-status=${reservation.status.name()}" th:text="${reservation.status.label}">待审核</span>
+                    </td>
+                    <td th:text="${#temporals.format(reservation.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-04 10:00</td>
+                    <td>
+                        <a class="button cancel-button" th:if="${reservation.status.name() == 'PENDING' or reservation.status.name() == 'APPROVED'}" th:href="@{/my/reservations/{id}/cancel(id=${reservation.id})}">
+                            取消预约
+                        </a>
+                        <span th:unless="${reservation.status.name() == 'PENDING' or reservation.status.name() == 'APPROVED'}">
+                            —
+                        </span>
+                        <a class="button"
+                           th:if="${reservation.status.name() == 'BORROWED'}"
+                           th:href="@{/my/reservations/{id}/return(id=${reservation.id})}">
+                            申请归还
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
