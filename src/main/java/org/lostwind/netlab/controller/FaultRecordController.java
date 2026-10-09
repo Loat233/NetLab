@@ -87,7 +87,7 @@ public class FaultRecordController {
         return "fault_record/list";
     }
 
-    // 管理员提交故障单的界面
+    // 管理员提交故障单的界面(管理员以设备为准来创建故障单)
     @GetMapping("/admin/devices/{deviceId}/report-fault")
     public String adminReportPage(@PathVariable Integer deviceId,
                                   Model model,
@@ -116,6 +116,68 @@ public class FaultRecordController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             attributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/admin/devices/" + deviceId + "/report-fault";
+        }
+    }
+
+    // 管理员将故障单设为维修中的界面
+    @GetMapping("/admin/fault-records/{recordId}/maintain")
+    public String maintainPage(@PathVariable Integer recordId,
+                               Model model,
+                               RedirectAttributes attributes) {
+        try {
+            FaultRecord record = faultRecordService.getFaultRecordById(recordId);
+            model.addAttribute("record", record);
+            return "fault_record/admin_maintain";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            attributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/fault-records";
+        }
+    }
+
+    // 管理员将故障单设为维修中的界面员
+    @PostMapping("/admin/fault-records/{recordId}/maintain")
+    public String startMaintain(@PathVariable Integer recordId,
+                                Authentication authentication,
+                                RedirectAttributes attributes) {
+        try {
+            faultRecordService.startMaintenance(authentication.getName(), recordId);
+            attributes.addFlashAttribute("message", "设备已经开始维修");
+            return "redirect:/admin/fault-records";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            attributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/fault-records/" + recordId + "/maintain";
+        }
+    }
+
+    // 管理员设置故障单维修结果的页面
+    @GetMapping("/admin/fault-records/{recordId}/result")
+    public String resultPage(@PathVariable Integer recordId,
+                             Model model,
+                             RedirectAttributes attributes) {
+        try {
+            FaultRecord record = faultRecordService.getFaultRecordById(recordId);
+            model.addAttribute("record", record);
+            return "fault_record/admin_result";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            attributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/fault-records";
+        }
+
+    }
+
+    // 管理员设置故障单维修结果的页面
+    @PostMapping("/admin/fault-records/{recordId}/result")
+    public String setResult(@PathVariable Integer recordId,
+                            @RequestParam boolean result,
+                            Authentication authentication,
+                            RedirectAttributes attributes) {
+        try {
+            faultRecordService.setRecordResult(authentication.getName(), recordId, result);
+            attributes.addFlashAttribute("message", "维修状态已经更新");
+            return "redirect:/admin/fault-records";
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            attributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/fault-records/" + recordId + "/result";
         }
     }
 }

@@ -201,6 +201,7 @@
           <th>处理状态</th>
           <th>上报时间</th>
           <th>解决时间</th>
+          <th>操作</th>
         </tr>
         </thead>
 
@@ -213,12 +214,12 @@
           <td th:text="${record.reporterId}">1</td>
 
           <td>
-                        <span class="source"
-                              th:text="${record.borrowRecordId == null
-                                        ? '管理员登记'
-                                        : '借用期间上报'}">
-                            借用期间上报
-                        </span>
+              <span class="source"
+                    th:text="${record.borrowRecordId == null
+                              ? '管理员登记'
+                              : '借用期间上报'}">
+                  借用期间上报
+              </span>
           </td>
 
           <td class="description"
@@ -227,11 +228,11 @@
           </td>
 
           <td>
-                        <span class="status"
-                              th:classappend="${' status-' + #strings.toLowerCase(record.status.name())}"
-                              th:text="${record.status.label}">
-                            待处理
-                        </span>
+              <span class="status"
+                    th:classappend="${' status-' + #strings.toLowerCase(record.status.name())}"
+                    th:text="${record.status.label}">
+                  待处理
+              </span>
           </td>
 
           <td th:text="${record.reportedAt == null
@@ -244,6 +245,22 @@
                                   ? '尚未解决'
                                   : #strings.replace(record.resolvedAt.toString(), 'T', ' ')}">
             尚未解决
+          </td>
+
+          <td>
+            <a th:if="${record.status.name() == 'PENDING'}"
+               th:href="@{/admin/fault-records/{id}/maintain(id=${record.id})}">
+              开始维修
+            </a>
+
+            <a th:if="${record.status.name() == 'PROCESSING'}"
+               th:href="@{/admin/fault-records/{id}/result(id=${record.id})}">
+              设置维修结果
+            </a>
+
+            <span th:if="${record.status.name() == 'RESOLVED'}">
+        已处理
+            </span>
           </td>
         </tr>
         </tbody>

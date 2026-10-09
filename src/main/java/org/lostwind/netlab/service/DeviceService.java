@@ -70,7 +70,7 @@ public class DeviceService {
         if (device.getStatus() == DeviceStatus.BORROWED
                 && status == DeviceStatus.OFFLINE) {
             throw new IllegalArgumentException(
-                    "借出中的设备不能直接下架"
+                    "借出中的设备不能直接修改状态"
             );
         }
         int rows = mapper.updateStatus(id, status);

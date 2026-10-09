@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>开始维修</title>
+</head>
+<body>
+
+<h2>确认开始维修</h2>
+
+<p>
+    故障单编号：
+    <span th:text="${record.id}"></span>
+</p>
+
+<p>
+    设备编号：
+    <span th:text="${record.deviceId}"></span>
+</p>
+
+<p>
+    故障描述：
+    <span th:text="${record.description}"></span>
+</p>
+
+<p>
+    当前状态：
+    <span th:text="${record.status.label}"></span>
+</p>
+
+<div th:if="${error}"
+     th:text="${error}"
+     style="color: red;">
+</div>
+
+<form method="post"
+      th:action="@{/admin/fault-records/{id}/maintain(id=${record.id})}">
+
+    <button type="submit">
+        确认开始维修
+    </button>
+
+    <a th:href="@{/admin/fault-records}">
+        取消
+    </a>
+</form>
+
+</body>
+</html>

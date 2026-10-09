@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>设置维修结果</title>
+</head>
+<body>
+
+<h2>设置维修结果</h2>
+
+<p>
+    故障单编号：
+    <span th:text="${record.id}"></span>
+</p>
+
+<p>
+    设备编号：
+    <span th:text="${record.deviceId}"></span>
+</p>
+
+<p>
+    故障描述：
+    <span th:text="${record.description}"></span>
+</p>
+
+<p>
+    当前状态：
+    <span th:text="${record.status.label}"></span>
+</p>
+
+<div th:if="${error}"
+     th:text="${error}"
+     style="color: red;">
+</div>
+
+<form method="post"
+      th:action="@{/admin/fault-records/{id}/result(id=${record.id})}">
+
+    <button type="submit"
+            name="result"
+            value="true"
+            onclick="return confirm('确定设备已经修复并恢复可用吗？')">
+        维修成功，恢复可用
+    </button>
+
+    <button type="submit"
+            name="result"
+            value="false"
+            onclick="return confirm('确定设备无法修复并下架吗？')">
+        无法修复，设备下架
+    </button>
+
+    <a th:href="@{/admin/fault-records}">
+        取消
+    </a>
+</form>
+
+</body>
+</html>

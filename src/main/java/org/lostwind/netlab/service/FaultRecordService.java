@@ -31,6 +31,15 @@ public class FaultRecordService {
         return faultRecordMapper.selectALl();
     }
 
+    // 根据故障单id得到故障单
+    public FaultRecord getFaultRecordById(Integer id) {
+        FaultRecord record = faultRecordMapper.selectById(id);
+        if (record == null) {
+            throw new IllegalArgumentException("未查询到故障单");
+        }
+        return record;
+    }
+
     // 根据用户id得到该用户提交的故障单
     public List<FaultRecord> getUserFaultRecordByUserId(Integer accountId) {
         List<FaultRecord> records = faultRecordMapper.selectByReporterId(accountId);
@@ -120,5 +129,56 @@ public class FaultRecordService {
 
         //未借出设备发现损坏时，立即修改设备状态
         deviceService.updateStatus(deviceId, DeviceStatus.DAMAGED);
+    }
+
+    // 管理员开始维修、处理故障单
+    @Transactional
+    public void startMaintenance(String accountName, Integer recordId) {
+        Account account = accountService.getAccountByUsername(accountName);
+        if (!"ADMIN".equals(account.getRole()) && !"LAB_ADMIN".equals(account.getRole())) {
+            throw new IllegalArgumentException("当前用户无权限处理故障单");
+        }
+
+        FaultRecord record = getFaultRecordById(recordId);
+        if (record.getStatus() != FaultStatus.PENDING) {
+            throw new IllegalArgumentException("该故障单的状态不可维修");
+        }
+
+        Device device = deviceService.getDeviceById(record.getDeviceId());
+        if (device.getStatus() != DeviceStatus.DAMAGED) {
+            throw new IllegalArgumentException("设备未归还或不处于损坏状态，不能维修");
+        }
+
+        deviceService.updateStatus(record.getDeviceId(),DeviceStatus.MAINTENANCE);
+        int rows = faultRecordMapper.updateStatus(recordId, FaultStatus.PROCESSING);
+        if (rows != 1) {
+            throw new IllegalArgumentException("故障单状态更新失败");
+        }
+    }
+
+    // 管理员选择故障单的维修结果
+    @Transactional
+    public void setRecordResult(String accountName, Integer recordId, boolean result) {
+        Account account = accountService.getAccountByUsername(accountName);
+        if (!"ADMIN".equals(account.getRole()) && !"LAB_ADMIN".equals(account.getRole())) {
+            throw new IllegalArgumentException("当前用户无权限处理故障单");
+        }
+
+        FaultRecord record = getFaultRecordById(recordId);
+        if (record.getStatus() != FaultStatus.PROCESSING) {
+            throw new IllegalArgumentException("该故障单不处于维修状态");
+        }
+
+        Device device = deviceService.getDeviceById(record.getDeviceId());
+        if (device.getStatus() != DeviceStatus.MAINTENANCE) {
+            throw new IllegalArgumentException("设备不处于维修状态，不能设置维修结果");
+        }
+
+        DeviceStatus status = result ? DeviceStatus.AVAILABLE : DeviceStatus.OFFLINE;
+        deviceService.updateStatus(record.getDeviceId(), status);
+        int rows = faultRecordMapper.resolve(recordId);
+        if (rows != 1) {
+            throw new IllegalArgumentException("故障单状态更新失败");
+        }
     }
 }
