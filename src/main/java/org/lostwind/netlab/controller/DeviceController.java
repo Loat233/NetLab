@@ -48,7 +48,7 @@ public class DeviceController {
 
 
     /*
-        管理员添加设备业务
+        管理员添加设备页面
     */
     @GetMapping("/admin/devices/add")
     public String addDevicePage(Model model) {
@@ -61,6 +61,9 @@ public class DeviceController {
         return "devices/add_form";
     }
 
+    /*
+        管理员添加设备业务
+    */
     @PostMapping("/admin/devices/add")
     public String addDevice(@ModelAttribute Device device, RedirectAttributes attributes) {
         device.setStatus(DeviceStatus.AVAILABLE);
@@ -70,7 +73,9 @@ public class DeviceController {
     }
 
 
-
+    /*
+        管理员编辑设备页面
+    */
     @GetMapping("/admin/devices/{id}/edit")
     public String editDevicePage(@PathVariable Integer id, Model model){
         Device device = deviceService.getDeviceById(id);
@@ -80,6 +85,9 @@ public class DeviceController {
         return "devices/edit_form";
     }
 
+    /*
+       管理员编辑设备业务
+    */
     @PostMapping("/admin/devices/{id}/edit")
     public String editDevice(@PathVariable Integer id,
                              @ModelAttribute Device device,
@@ -88,25 +96,6 @@ public class DeviceController {
         device.setId(id);
         deviceService.updateDevice(device);
         attributes.addFlashAttribute("message", "设备信息修改成功");
-        return "redirect:/devices";
-    }
-
-
-
-    @GetMapping("/admin/devices/{id}/status")
-    public String editStatusPage(@PathVariable Integer id, Model model) {
-        Device device = deviceService.getDeviceById(id);
-        model.addAttribute("device", device);
-        model.addAttribute("statuses", DeviceStatus.values());
-        return "devices/status_form";
-    }
-
-    @PostMapping("/admin/devices/{id}/status")
-    public String editStatus(@PathVariable Integer id,
-                                   @RequestParam DeviceStatus status,
-                                   RedirectAttributes attributes) {
-        deviceService.updateStatus(id, status);
-        attributes.addFlashAttribute("message", "设备状态修改成功");
         return "redirect:/devices";
     }
 }

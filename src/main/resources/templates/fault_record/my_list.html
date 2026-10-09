@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的故障单 - NetLab</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f4f7fb;
+      color: #263445;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .page-shell {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 60px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 18px;
+      color: #607080;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      color: #16baaa;
+    }
+
+    .card {
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid #e8edf3;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(31, 45, 61, .07);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 26px 30px;
+      border-bottom: 1px solid #edf0f4;
+      background: linear-gradient(135deg, #effdfa, #f7fbff);
+    }
+
+    .card-header h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+    }
+
+    .card-header p {
+      margin: 0;
+      color: #7b8794;
+      font-size: 14px;
+    }
+
+    .count {
+      flex-shrink: 0;
+      padding: 7px 13px;
+      border-radius: 999px;
+      color: #078d79;
+      background: #e8faf6;
+      font-size: 14px;
+    }
+
+    .alert {
+      margin: 24px 30px 0;
+      padding: 12px 15px;
+      border: 1px solid #ffd6d2;
+      border-radius: 8px;
+      color: #b42318;
+      background: #fff1f0;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      padding: 24px 30px 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+    }
+
+    th, td {
+      padding: 15px 14px;
+      border-bottom: 1px solid #edf0f4;
+      text-align: left;
+    }
+
+    th {
+      color: #667085;
+      background: #f8fafc;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    td {
+      font-size: 14px;
+    }
+
+    .description {
+      min-width: 220px;
+      max-width: 360px;
+      white-space: normal;
+      line-height: 1.6;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .status-pending {
+      color: #b54708;
+      background: #fff4e5;
+    }
+
+    .status-processing {
+      color: #175cd3;
+      background: #eff8ff;
+    }
+
+    .status-resolved {
+      color: #067647;
+      background: #ecfdf3;
+    }
+
+    .empty {
+      padding: 70px 20px;
+      color: #8a94a3;
+      text-align: center;
+    }
+
+    .empty strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #4d5968;
+      font-size: 18px;
+    }
+
+    @media (max-width: 600px) {
+      .card-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .card-header,
+      .table-wrapper {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<main class="page-shell">
+  <a class="back-link" th:href="@{/my/reservations}">
+    ← 返回我的预约
+  </a>
+
+  <section class="card">
+    <header class="card-header">
+      <div>
+        <h1>我的故障单</h1>
+        <p>查看自己提交的设备故障及处理进度</p>
+      </div>
+
+      <span class="count"
+            th:if="${records != null}"
+            th:text="|共 ${records.size()} 条|">
+                共 0 条
+            </span>
+    </header>
+
+    <div class="alert"
+         th:if="${error}"
+         th:text="${error}">
+      查询故障单失败
+    </div>
+
+    <div class="table-wrapper"
+         th:if="${records != null and not #lists.isEmpty(records)}">
+
+      <table>
+        <thead>
+        <tr>
+          <th>故障单编号</th>
+          <th>设备编号</th>
+          <th>借用记录</th>
+          <th>故障描述</th>
+          <th>处理状态</th>
+          <th>上报时间</th>
+          <th>解决时间</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="record : ${records}">
+          <td th:text="${record.id}">1</td>
+
+          <td th:text="${record.deviceId}">1</td>
+
+          <td th:text="${record.borrowRecordId == null
+                                  ? '无关联借用'
+                                  : record.borrowRecordId}">
+            1
+          </td>
+
+          <td class="description"
+              th:text="${record.description}">
+            故障描述
+          </td>
+
+          <td>
+                        <span class="status"
+                              th:classappend="${' status-' + #strings.toLowerCase(record.status.name())}"
+                              th:text="${record.status.label}">
+                            待处理
+                        </span>
+          </td>
+
+          <td th:text="${record.reportedAt == null
+                                  ? '-'
+                                  : #strings.replace(record.reportedAt.toString(), 'T', ' ')}">
+            2026-10-09 10:00
+          </td>
+
+          <td th:text="${record.resolvedAt == null
+                                  ? '尚未解决'
+                                  : #strings.replace(record.resolvedAt.toString(), 'T', ' ')}">
+            尚未解决
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty"
+         th:if="${records == null or #lists.isEmpty(records)}">
+      <strong>暂无故障单</strong>
+      <span>你目前还没有提交过设备故障。</span>
+    </div>
+  </section>
+</main>
+</body>
+</html>

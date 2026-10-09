@@ -77,6 +77,11 @@ public class ReservationService {
     // 得到全部的申请归还(待确认归还)预约单
     public List<Reservation> getReturnPendingList() {return reservationMapper.selectReturnPending();}
 
+    // 根据预约单状态得到预约单
+    public List<Reservation> getAdminReservationList(ReservationStatus status) {
+        return reservationMapper.selectAdminList(status);
+    }
+
     // 用户创建并向数据库提交预约单
     @Transactional
     public void createReservation(Integer applicantId, ReservationRequest request) {

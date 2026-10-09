@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form th:action="@{/my/reservations/{id}/report-fault(id=${reservation.id})}"
+      method="post">
+
+    <textarea name="description"
+              maxlength="500"
+              required
+              placeholder="请描述设备故障"
+              th:text="${description}"></textarea>
+
+  <button type="submit">提交故障单</button>
+</form>
+<div th:if="${error}"
+     th:text="${error}"
+     style="color: red;">
+</div>
+</body>
+</html>

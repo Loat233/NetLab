@@ -142,20 +142,28 @@ public class ReservationController {
         return "redirect:/my/reservations";
     }
 
+    /*
+        管理员查看所有预约
+    */
+    @GetMapping("/admin/reservations")
+    public String adminReservationList(@RequestParam(required = false) ReservationStatus status, Model model) {
+        List<Reservation> reservations = reservationService.getAdminReservationList(status);
+
+        model.addAttribute("reservations", reservations);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("statuses", List.of(
+                ReservationStatus.PENDING,
+                ReservationStatus.APPROVED,
+                ReservationStatus.RETURN_PENDING
+        ));
+        return "reservations/list";
+    }
 
     /*
-        管理员查看待审核预约
-    */
-    @GetMapping("/admin/reservations/pending")
-    public String pendingReservations(Model model) {
-        model.addAttribute("reservations", reservationService.getPendingList());
-        return "reservations/pending_list";
-    }
-    /*
-        管理员审核预约业务
+        管理员审核某预约的页面
     */
     @GetMapping("/admin/reservations/{reservationId}/check")
-    public String checkPendingReservations(@PathVariable Integer reservationId,
+    public String checkPendingReservationsPage(@PathVariable Integer reservationId,
                                           Model model){
         Reservation reservation = reservationService.getReservationById(reservationId);
         Account account = accountService.getAccountById(reservation.getApplicantId());
@@ -167,6 +175,9 @@ public class ReservationController {
         return "reservations/check";
     }
 
+    /*
+        管理员批准预约业务
+    */
     @PostMapping("/admin/reservations/{reservationId}/approved")
     public String approvePendingReservation(@PathVariable Integer reservationId,
                                             Authentication authentication,
@@ -181,9 +192,12 @@ public class ReservationController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             attributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/reservations/pending";
+        return "redirect:/admin/reservations?status=PENDING";
     }
 
+    /*
+       管理员拒绝预约业务
+    */
     @PostMapping("/admin/reservations/{reservationId}/reject")
     public String rejectPendingReservation(@PathVariable Integer reservationId,
                                             @RequestParam(required = false) String reason,
@@ -200,19 +214,10 @@ public class ReservationController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             attributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/reservations/pending";
+        return "redirect:/admin/reservations?status=PENDING";
     }
 
 
-
-    /*
-        管理员查看批准后待确认借出的预约
-    */
-    @GetMapping("/admin/reservations/approved")
-    public String approvedReservations(Model model) {
-        model.addAttribute("reservations", reservationService.getApprovedList());
-        return "reservations/approved_list";
-    }
     /*
         管理员确认借出业务
     */
@@ -227,18 +232,10 @@ public class ReservationController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             attributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/reservations/approved";
+        return "redirect:/admin/reservations?status=APPROVED";
     }
 
-   /*
-       管理员查看申请归还后待确认归还的预约
-   */
-    @GetMapping("/admin/reservations/return-pending")
-    public String returnPendingReservations(Model model) {
-        List<Reservation> reservations = reservationService.getReturnPendingList();
-        model.addAttribute("reservations", reservations);
-        return "reservations/return_pending_list";
-    }
+
    /*
        管理员确认归还业务
    */
@@ -254,6 +251,6 @@ public class ReservationController {
        } catch (IllegalArgumentException | IllegalStateException e) {
            attributes.addFlashAttribute("error", e.getMessage());
        }
-       return "redirect:/admin/reservations/return-pending";
+       return "redirect:/admin/reservations?status=RETURN_PENDING";
    }
 }

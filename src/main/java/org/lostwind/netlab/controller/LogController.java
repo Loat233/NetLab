@@ -70,7 +70,7 @@ public class LogController {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddr);
         message.setTo(username);
-        message.setSubject("恁的验证码");
+        message.setSubject("您的验证码");
         message.setText("""
             您正在登录 NetLab 网络实验室设备预约平台。
 

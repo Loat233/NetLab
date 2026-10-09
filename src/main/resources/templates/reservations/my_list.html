@@ -119,6 +119,10 @@
                            th:href="@{/my/reservations/{id}/return(id=${reservation.id})}">
                             申请归还
                         </a>
+                        <a th:if="${reservation.status.name() == 'BORROWED' || reservation.status.name() == 'RETURN_PENDING'}"
+                           th:href="@{/my/reservations/{id}/report-fault(id=${reservation.id})}">
+                            上报故障
+                        </a>
                     </td>
                 </tr>
                 </tbody>

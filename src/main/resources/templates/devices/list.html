@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -26,18 +28,25 @@
                 <a th:href="@{/devices/{id}(id=${device.id})}">
                     查看详情
                 </a>
-                <a th:href="@{/admin/devices/{id}/edit(id=${device.id})}">
-                    编辑
-                </a>
-                <a th:href="@{/admin/devices/{id}/status(id=${device.id})}">
-                    修改状态
-                </a>
+                <span sec:authorize="hasAnyRole('ADMIN', 'LAB_ADMIN')">
+                    <a th:href="@{/admin/devices/{id}/edit(id=${device.id})}">
+                        编辑
+                    </a>
+                    <a th:if="${device.status.name() == 'AVAILABLE'}"
+                       th:href="@{/admin/devices/{deviceId}/report-fault(deviceId=${device.id})}">
+                        登记故障
+                    </a>
+                </span>
             </td>
         </tr>
         </tbody>
     </table>
     <a th:href="@{/admin/devices/add}">
         添加设备
+    </a>
+    <a sec:authorize="hasAnyRole('ADMIN', 'LAB_ADMIN')"
+       th:href="@{/admin/fault-records}">
+        查看全部故障单
     </a>
     <div th:if="${message}"
          th:text="${message}"

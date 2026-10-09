@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约管理 - NetLab</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: #263445;
+            background: #f4f7fb;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        .page-shell {
+            width: min(1280px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 36px 0 60px;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        .page-head h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        .page-head p {
+            margin: 0;
+            color: #667182;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            height: 38px;
+            padding: 0 15px;
+            color: #4d5968;
+            background: #fff;
+            border: 1px solid #d8dee7;
+            border-radius: 7px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button.primary {
+            color: #fff;
+            background: #0f766e;
+            border-color: #0f766e;
+        }
+
+        .button.danger {
+            color: #fff;
+            background: #d94a55;
+            border-color: #d94a55;
+        }
+
+        .filter-card {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 12px;
+        }
+
+        .filter-form {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        select,
+        input[type="text"] {
+            height: 38px;
+            padding: 0 11px;
+            color: #263445;
+            background: #fff;
+            border: 1px solid #d8dee7;
+            border-radius: 7px;
+        }
+
+        .notice {
+            margin-bottom: 18px;
+            padding: 13px 16px;
+            border-radius: 8px;
+        }
+
+        .notice.success {
+            color: #168a5b;
+            background: #f0fff7;
+            border: 1px solid #b7ebd2;
+        }
+
+        .notice.error {
+            color: #cf1322;
+            background: #fff1f0;
+            border: 1px solid #ffccc7;
+        }
+
+        .card {
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(31, 45, 61, .06);
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #e8edf3;
+        }
+
+        .card-head h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .count {
+            padding: 6px 11px;
+            color: #175cd3;
+            background: #eff8ff;
+            border-radius: 999px;
+            font-size: 13px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1100px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #edf0f4;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            color: #667182;
+            background: #f8fafc;
+            font-size: 13px;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        .code {
+            font-family: Consolas, monospace;
+        }
+
+        .time {
+            white-space: nowrap;
+            line-height: 1.7;
+        }
+
+        .secondary {
+            color: #7b8794;
+        }
+
+        .purpose {
+            min-width: 150px;
+            max-width: 260px;
+            white-space: normal;
+            line-height: 1.5;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .status-pending {
+            color: #925400;
+            background: #fff7e6;
+        }
+
+        .status-approved {
+            color: #175cd3;
+            background: #eff8ff;
+        }
+
+        .status-return_pending {
+            color: #9a3412;
+            background: #fff1e8;
+        }
+
+        .actions {
+            min-width: 210px;
+        }
+
+        .actions form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .remark {
+            width: 130px;
+        }
+
+        .empty {
+            padding: 65px 20px;
+            color: #7b8794;
+            text-align: center;
+        }
+
+        @media (max-width: 650px) {
+            .page-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="page-shell">
+
+    <header class="page-head">
+        <div>
+            <h1>预约管理</h1>
+            <p>统一处理预约审核、设备借出和设备归还。</p>
+        </div>
+
+        <a class="button" th:href="@{/index}">
+            返回首页
+        </a>
+    </header>
+
+    <!-- 状态过滤 -->
+    <section class="filter-card">
+        <form class="filter-form"
+              method="get"
+              th:action="@{/admin/reservations}">
+
+            <label for="status">预约状态：</label>
+
+            <select id="status" name="status">
+                <option value=""
+                        th:selected="${selectedStatus == null}">
+                    全部待处理
+                </option>
+
+                <option th:each="optionStatus : ${statuses}"
+                        th:value="${optionStatus.name()}"
+                        th:text="${optionStatus.label}"
+                        th:selected="${optionStatus == selectedStatus}">
+                </option>
+            </select>
+
+            <button class="button primary" type="submit">
+                查询
+            </button>
+
+            <a class="button"
+               th:href="@{/admin/reservations}">
+                重置
+            </a>
+        </form>
+    </section>
+
+    <!-- 操作结果 -->
+    <div class="notice success"
+         th:if="${message}"
+         th:text="${message}">
+    </div>
+
+    <div class="notice error"
+         th:if="${error}"
+         th:text="${error}">
+    </div>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>预约列表</h2>
+
+            <span class="count"
+                  th:text="|共 ${reservations == null ? 0 : reservations.size()} 条|">
+                共 0 条
+            </span>
+        </div>
+
+        <div class="empty"
+             th:if="${reservations == null or #lists.isEmpty(reservations)}">
+            当前状态下没有预约记录
+        </div>
+
+        <div class="table-wrap"
+             th:if="${reservations != null and not #lists.isEmpty(reservations)}">
+
+            <table>
+                <thead>
+                <tr>
+                    <th>预约编号</th>
+                    <th>申请人</th>
+                    <th>设备</th>
+                    <th>预约时间</th>
+                    <th>用途</th>
+                    <th>状态</th>
+                    <th>提交时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="reservation : ${reservations}">
+                    <td class="code"
+                        th:text="${reservation.reservationCode}">
+                    </td>
+
+                    <td th:text="|用户 #${reservation.applicantId}|">
+                    </td>
+
+                    <td>
+                        <a th:href="@{/devices/{id}(id=${reservation.deviceId})}"
+                           th:text="|设备 #${reservation.deviceId}|">
+                        </a>
+                    </td>
+
+                    <td class="time">
+                        <div th:text="${#temporals.format(
+                            reservation.startTime,
+                            'yyyy-MM-dd HH:mm'
+                        )}">
+                        </div>
+
+                        <div class="secondary"
+                             th:text="|至 ${#temporals.format(
+                                 reservation.endTime,
+                                 'yyyy-MM-dd HH:mm'
+                             )}|">
+                        </div>
+                    </td>
+
+                    <td class="purpose"
+                        th:text="${#strings.isEmpty(reservation.purpose)
+                                  ? '未填写'
+                                  : reservation.purpose}">
+                    </td>
+
+                    <td>
+                        <span class="status"
+                              th:classappend="${' status-' +
+                                  #strings.toLowerCase(
+                                      reservation.status.name()
+                                  )}"
+                              th:text="${reservation.status.label}">
+                        </span>
+                    </td>
+
+                    <td class="time"
+                        th:text="${#temporals.format(
+                            reservation.createdAt,
+                            'yyyy-MM-dd HH:mm'
+                        )}">
+                    </td>
+
+                    <td class="actions">
+
+                        <!-- 待审核 -->
+                        <a class="button primary"
+                           th:if="${reservation.status.name() == 'PENDING'}"
+                           th:href="@{/admin/reservations/{id}/check(
+                               id=${reservation.id}
+                           )}">
+                            审核
+                        </a>
+
+                        <!-- 已批准，确认借出 -->
+                        <form th:if="${reservation.status.name() == 'APPROVED'}"
+                              method="post"
+                              th:action="@{/admin/reservations/{id}/borrow(
+                                  id=${reservation.id}
+                              )}"
+                              onsubmit="return confirm('确定该设备已经交给学生吗？');">
+
+                            <button class="button primary" type="submit">
+                                确认借出
+                            </button>
+                        </form>
+
+                        <!-- 待归还，确认归还 -->
+                        <form th:if="${reservation.status.name() == 'RETURN_PENDING'}"
+                              method="post"
+                              th:action="@{/admin/reservations/{id}/confirmReturn(
+                                  id=${reservation.id}
+                              )}"
+                              onsubmit="return confirm('确定已经收到归还设备吗？');">
+
+                            <input class="remark"
+                                   type="text"
+                                   name="remark"
+                                   maxlength="500"
+                                   placeholder="归还备注">
+
+                            <button class="button danger" type="submit">
+                                确认归还
+                            </button>
+                        </form>
+
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

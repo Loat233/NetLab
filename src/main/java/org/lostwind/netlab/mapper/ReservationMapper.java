@@ -44,6 +44,18 @@ public interface ReservationMapper {
     @Select("select * from reservation where status = 'RETURN_PENDING'")
     List<Reservation> selectReturnPending();
 
+    @Select("""
+        <script>
+        select * from reservation
+        where status in ('PENDING', 'APPROVED', 'RETURN_PENDING')
+        <if test='status != null'>
+        and status = #{status}
+        </if>
+        order by created_at asc, id asc
+        </script>
+    """)
+    List<Reservation> selectAdminList(ReservationStatus status);
+
     @Insert("insert into reservation (reservation_code, applicant_id, device_id, start_time, end_time, purpose, status, reviewer_id, review_time, reject_reason, cancel_reason, created_at, updated_at) values (#{reservationCode}, #{applicantId}, #{deviceId}, #{startTime}, #{endTime}, #{purpose}, #{status}, #{reviewerId}, #{reviewTime}, #{rejectReason}, #{cancelReason}, NOW(), NOW())")
     @Options(useGeneratedKeys = true, keyColumn = "id", keyProperty = "id")
     int insert(Reservation reservation);

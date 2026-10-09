@@ -245,8 +245,8 @@
             <p class="muted">核对申请人、设备和预约时间后，选择批准或拒绝。</p>
         </div>
 
-        <a class="button" th:href="@{/admin/reservations}">
-            返回待审核列表
+        <a class="button" th:href="@{/admin/reservations(status='PENDING')}">
+            返回预约列表
         </a>
     </header>
 

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登记设备故障 - NetLab</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: #263445;
+            background: #f4f7fb;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        .page-shell {
+            width: min(720px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 60px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 18px;
+            color: #607080;
+            text-decoration: none;
+        }
+
+        .back-link:hover { color: #16baaa; }
+
+        .card {
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(31, 45, 61, .07);
+        }
+
+        .card-header {
+            padding: 26px 30px;
+            background: linear-gradient(135deg, #fff4f3, #fff);
+            border-bottom: 1px solid #edf0f4;
+        }
+
+        .card-header h1 {
+            margin: 0 0 8px;
+            font-size: 25px;
+        }
+
+        .card-header p {
+            margin: 0;
+            color: #7b8794;
+            font-size: 14px;
+        }
+
+        .content { padding: 28px 30px 32px; }
+
+        .device-info {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 26px;
+            padding: 18px 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .info-item span {
+            display: block;
+            margin-bottom: 6px;
+            color: #8a94a3;
+            font-size: 13px;
+        }
+
+        .info-item strong { font-size: 15px; }
+
+        .status {
+            display: inline-block;
+            padding: 3px 9px;
+            color: #078d79;
+            background: #e8faf6;
+            border-radius: 999px;
+        }
+
+        .form-item label {
+            display: block;
+            margin-bottom: 9px;
+            font-weight: 600;
+        }
+
+        .required { color: #e34d59; }
+
+        textarea {
+            display: block;
+            width: 100%;
+            min-height: 160px;
+            padding: 13px 15px;
+            resize: vertical;
+            color: #263445;
+            border: 1px solid #d8dee7;
+            border-radius: 8px;
+            outline: none;
+            font: inherit;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            border-color: #16baaa;
+            box-shadow: 0 0 0 3px rgba(22, 186, 170, .12);
+        }
+
+        .form-tip {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 7px;
+            color: #8a94a3;
+            font-size: 12px;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            color: #b42318;
+            background: #fff1f0;
+            border: 1px solid #ffd6d2;
+        }
+
+        .alert-warning {
+            color: #9a6700;
+            background: #fff8df;
+            border: 1px solid #f5df9d;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 108px;
+            height: 42px;
+            padding: 0 18px;
+            border: 1px solid #d8dee7;
+            border-radius: 8px;
+            color: #4d5968;
+            background: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .button.primary {
+            color: #fff;
+            background: #e34d59;
+            border-color: #e34d59;
+        }
+
+        .button.primary:hover { background: #cf3f4b; }
+
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: .55;
+        }
+
+        @media (max-width: 560px) {
+            .card-header, .content { padding-left: 20px; padding-right: 20px; }
+            .device-info { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell">
+    <a class="back-link" th:href="@{/devices}">← 返回设备列表</a>
+
+    <section class="card">
+        <header class="card-header">
+            <h1>登记设备故障</h1>
+            <p>提交后系统会生成待处理故障单，并将设备状态修改为“损坏”。</p>
+        </header>
+
+        <div class="content">
+            <div class="alert alert-error" th:if="${error}" th:text="${error}">
+                故障单提交失败
+            </div>
+
+            <div class="device-info">
+                <div class="info-item">
+                    <span>设备名称</span>
+                    <strong th:text="${device.deviceName}">设备名称</strong>
+                </div>
+                <div class="info-item">
+                    <span>资产编号</span>
+                    <strong th:text="${device.assetCode}">SW-001</strong>
+                </div>
+                <div class="info-item">
+                    <span>设备型号</span>
+                    <strong th:text="${#strings.isEmpty(device.model) ? '未填写' : device.model}">未填写</strong>
+                </div>
+                <div class="info-item">
+                    <span>当前状态</span>
+                    <strong class="status" th:text="${device.status.label}">可用</strong>
+                </div>
+            </div>
+
+            <div class="alert alert-warning" th:if="${device.status.name() != 'AVAILABLE'}">
+                当前设备不是可用状态，不能登记新的故障单。
+            </div>
+
+            <form th:action="@{/admin/devices/{id}/report-fault(id=${device.id})}" method="post">
+                <div class="form-item">
+                    <label for="description">
+                        故障描述 <span class="required">*</span>
+                    </label>
+                    <textarea id="description"
+                              name="description"
+                              maxlength="500"
+                              required
+                              placeholder="请描述故障现象、发生位置以及其他需要说明的信息"
+                              th:text="${description}"></textarea>
+                    <div class="form-tip">
+                        <span>故障描述不能为空</span>
+                        <span><span id="description-count">0</span>/500</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <a class="button" th:href="@{/devices}">取消</a>
+                    <button class="button primary"
+                            type="submit"
+                            th:disabled="${device.status.name() != 'AVAILABLE'}">
+                        提交故障单
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script>
+    const description = document.getElementById('description');
+    const descriptionCount = document.getElementById('description-count');
+
+    function updateDescriptionCount() {
+        descriptionCount.textContent = description.value.length;
+    }
+
+    description.addEventListener('input', updateDescriptionCount);
+    updateDescriptionCount();
+</script>
+</body>
+</html>

@@ -10,6 +10,9 @@ public interface BorrowMapper {
     @Select("select * from borrow_record")
     List<BorrowRecord> selectAll();
 
+    @Select("select * from borrow_record where id = #{id}")
+    BorrowRecord selectById(Integer id);
+
     @Select("select * from borrow_record where reservation_id = #{reservationId}")
     BorrowRecord selectByReservationId(Integer reservationId);
 

@@ -2,7 +2,6 @@ package org.lostwind.netlab.service;
 
 import org.lostwind.netlab.entity.BorrowRecord;
 import org.lostwind.netlab.entity.Device;
-import org.lostwind.netlab.entity.FaultRecord;
 import org.lostwind.netlab.entity.Reservation;
 import org.lostwind.netlab.enums.BorrowStatus;
 import org.lostwind.netlab.enums.DeviceStatus;
@@ -33,6 +32,15 @@ public class BorrowService {
     private DeviceMapper deviceMapper;
     @Autowired
     private FaultRecordMapper faultRecordMapper;
+
+
+    public BorrowRecord getRecordById(Integer id) {
+        BorrowRecord record = borrowMapper.selectById(id);
+        if (record == null) {
+            throw new IllegalArgumentException("借出单不存在");
+        }
+        return record;
+    }
 
     public BorrowRecord getRecordByReservationId(Integer id) {
         BorrowRecord record = borrowMapper.selectByReservationId(id);
@@ -115,10 +123,9 @@ public class BorrowService {
             throw new IllegalStateException("该借用记录所对应的预约状态更新失败，请稍后重试");
         }
 
-
         int deviceRows;
         // 查看用户有没有提交该借出单对应的设备损坏单
-        int faultRecord = faultRecordMapper.countUnsolvedByBorrowRecordId(borrowRecord.getId());
+        int faultRecord = faultRecordMapper.countUnresolvedByBorrowRecordId(borrowRecord.getId());
         if (faultRecord > 0) {  // 如果有，设备状态变为不可用
             deviceRows = deviceMapper.updateStatus(device.getId(), DeviceStatus.DAMAGED);
         } else { // 如果没有，设备状态变为可用
