@@ -4,6 +4,7 @@ import org.lostwind.netlab.entity.*;
 import org.lostwind.netlab.enums.BorrowStatus;
 import org.lostwind.netlab.enums.DeviceStatus;
 import org.lostwind.netlab.enums.FaultStatus;
+import org.lostwind.netlab.mapper.BorrowMapper;
 import org.lostwind.netlab.mapper.DeviceMapper;
 import org.lostwind.netlab.mapper.FaultRecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,8 @@ public class FaultRecordService {
     private DeviceService deviceService;
     @Autowired
     private DeviceMapper deviceMapper;
+    @Autowired
+    private BorrowMapper borrowMapper;
 
 
     // 得到所有的故障单
@@ -56,10 +59,20 @@ public class FaultRecordService {
     @Transactional
     public void createFaultRecordByUser(Integer borrowRecordId, Integer reporterId, String description) {
         accountService.getAccountById(reporterId);
-        BorrowRecord record = borrowService.getRecordById(borrowRecordId);
+
+        BorrowRecord recordPreview = borrowService.getRecordById(borrowRecordId);
         // 检测用户id是否与借出单对应的预约单的申请人id相同
-        Reservation reservation = reservationService.getUserReservationById(reporterId, record.getReservationId());
-        Device device = deviceService.getDeviceById(reservation.getDeviceId());
+        Reservation reservationPreview = reservationService.getUserReservationById(reporterId, recordPreview.getReservationId());
+
+        // device,record加锁
+        Device device = deviceMapper.selectByIdForUpdate(reservationPreview.getDeviceId());
+        if (device == null) {
+            throw new IllegalArgumentException("设备不存在");
+        }
+        BorrowRecord record = borrowMapper.selectByIdForUpdate(borrowRecordId);
+        if (record == null) {
+            throw new IllegalArgumentException("借用记录不存在");
+        }
 
         String content = description == null ? null : description.trim();
         if (content == null || content.isEmpty() || content.length() > 500) {
@@ -107,7 +120,10 @@ public class FaultRecordService {
             throw new IllegalArgumentException("故障描述不能为空或超过500字");
         }
 
-        Device device = deviceService.getDeviceById(deviceId);
+        Device device = deviceMapper.selectByIdForUpdate(deviceId);
+        if (device == null) {
+            throw new IllegalArgumentException("设备不存在");
+        }
         if (device.getStatus() != DeviceStatus.AVAILABLE) {
             throw new IllegalArgumentException("只有可用/未借出状态的设备才能登记故障");
         }
@@ -125,13 +141,13 @@ public class FaultRecordService {
         faultRecord.setDescription(content);
         faultRecord.setReportedAt(LocalDateTime.now());
 
-        int rows = faultRecordMapper.insert(faultRecord);
-        if (rows != 1) {
-            throw new IllegalStateException("故障单创建失败，请稍后重试");
+        if (faultRecordMapper.insert(faultRecord) != 1) {
+            throw new IllegalStateException("故障单创建失败");
         }
 
-        //未借出设备发现损坏时，立即修改设备状态
-        deviceService.updateStatus(deviceId, DeviceStatus.DAMAGED);
+        if (deviceMapper.markDamaged(deviceId) != 1) {
+            throw new IllegalStateException("设备状态已经发生改变");
+        }
     }
 
     // 管理员开始维修、处理故障单
@@ -183,12 +199,16 @@ public class FaultRecordService {
             throw new IllegalArgumentException("当前用户无权限处理故障单");
         }
 
-        FaultRecord record = getFaultRecordById(recordId);
+        FaultRecord preview = getFaultRecordById(recordId);
+
+        // device,record加锁
+        Device device = deviceMapper.selectByIdForUpdate(preview.getDeviceId());
+        FaultRecord record = faultRecordMapper.selectByIdForUpdate(recordId);
+
         if (record.getStatus() != FaultStatus.PROCESSING) {
             throw new IllegalArgumentException("该故障单不处于维修状态");
         }
 
-        Device device = deviceService.getDeviceById(record.getDeviceId());
         if (device.getStatus() != DeviceStatus.MAINTENANCE) {
             throw new IllegalArgumentException("设备不处于维修状态，不能设置维修结果");
         }

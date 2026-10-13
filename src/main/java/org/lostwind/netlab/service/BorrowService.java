@@ -91,24 +91,38 @@ public class BorrowService {
         record.setReservationId(reservationId);
         record.setBorrowOperatorId(operatorId);
         // 设置时间相关信息
-        record.setBorrowedAt(LocalDateTime.now());
+        record.setBorrowedAt(LocalDateTime.now().withNano(0));
         record.setDueAt(reservation.getEndTime());  // 应归还时间 = 预约单填入的结束时间
 
         record.setStatus(BorrowStatus.BORROWED);
 
         borrowMapper.insert(record);
         if (reservationMapper.updateStatus(reservationId, ReservationStatus.BORROWED) != 1) {
-            throw new IllegalStateException("设备更新失败，请稍后重试");
+            throw new IllegalStateException("预约更新失败，请稍后重试");
         }
-        deviceMapper.updateStatus(device.getId(), DeviceStatus.BORROWED);
+        if (deviceMapper.markBorrowed(device.getId()) != 1) {
+            throw new IllegalStateException("设备更新失败");
+        }
     }
 
     // 管理员确认归还
     @Transactional
     public void confirmReturn(Integer id, Integer operatorId, String remark) {
-        Reservation reservation = reservationService.getReservationById(id);
-        Device device = deviceService.getDeviceById(reservation.getDeviceId());
-        BorrowRecord borrowRecord = getRecordByReservationId(id);
+        // 第一次查询只用于判断预约是否存在,并取得device_id
+        Reservation preview = reservationService.getReservationById(id);
+        if (preview == null) {
+            throw new IllegalArgumentException("该预约不存在");
+        }
+
+        // 获取设备并上锁
+        Device device = deviceMapper.selectByIdForUpdate(preview.getDeviceId());
+        if (device == null) {
+            throw new IllegalArgumentException("预约对应的设备不存在");
+        }
+        // 重新获取预约单并上锁
+        Reservation reservation = reservationMapper.selectByIdForUpdate(id);
+        // 获取借出记录并上锁
+        BorrowRecord borrowRecord = borrowMapper.selectByReservationIdForUpdate(id);
 
         if (remark != null && remark.length() > 500) {
             throw new IllegalArgumentException("借用记录的备注不能超过500字");

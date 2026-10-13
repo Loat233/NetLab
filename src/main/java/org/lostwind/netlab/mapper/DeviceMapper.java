@@ -63,6 +63,11 @@ public interface DeviceMapper {
     @Update("update device set status = #{status}, updated_at = NOW() where id = #{id}")
     int updateStatus(@Param("id") int id, @Param("status") DeviceStatus status);
 
+    @Update("update device set status = 'DAMAGED', updated_at = now() where id = #{id} and status = 'AVAILABLE'")
+    int markDamaged(Integer id);
+
+    @Update("update device set status = 'BORROWED', updated_at = now() where id = #{id} and status = 'AVAILABLE'")
+    int markBorrowed(Integer id);
 
     @Update("update device set status = 'MAINTENANCE', updated_at = NOW() where id = #{id} and status = 'DAMAGED'")
     int startMaintenance(Integer id);
