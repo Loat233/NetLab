@@ -46,15 +46,20 @@ public interface ReservationMapper {
 
     @Select("""
         <script>
-        select * from reservation
-        where status in ('PENDING', 'APPROVED', 'RETURN_PENDING')
+        select r.* from reservation r
+        left join borrow_record b
+            on b.reservation_id = r.id
+        where r.status in ('PENDING', 'APPROVED', 'RETURN_PENDING', 'BORROWED')
         <if test='status != null'>
-        and status = #{status}
+            and r.status = #{status}
         </if>
-        order by created_at asc, id asc
+        <if test='overdue != null and overdue'>
+            and b.overdue = 1
+        </if>
+        order by r.created_at asc, r.id asc
         </script>
     """)
-    List<Reservation> selectAdminList(ReservationStatus status);
+    List<Reservation> selectAdminList(@Param("status") ReservationStatus status, @Param("overdue") Boolean overdue);
 
     @Insert("insert into reservation (reservation_code, applicant_id, device_id, start_time, end_time, purpose, status, reviewer_id, review_time, reject_reason, cancel_reason, created_at, updated_at) values (#{reservationCode}, #{applicantId}, #{deviceId}, #{startTime}, #{endTime}, #{purpose}, #{status}, #{reviewerId}, #{reviewTime}, #{rejectReason}, #{cancelReason}, NOW(), NOW())")
     @Options(useGeneratedKeys = true, keyColumn = "id", keyProperty = "id")

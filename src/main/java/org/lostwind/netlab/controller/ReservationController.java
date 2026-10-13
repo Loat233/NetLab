@@ -146,16 +146,20 @@ public class ReservationController {
         管理员查看所有预约
     */
     @GetMapping("/admin/reservations")
-    public String adminReservationList(@RequestParam(required = false) ReservationStatus status, Model model) {
-        List<Reservation> reservations = reservationService.getAdminReservationList(status);
+    public String adminReservationList(@RequestParam(required = false) ReservationStatus status,
+                                       @RequestParam(required = false) Boolean overdue,
+                                       Model model) {
+        List<Reservation> reservations = reservationService.getAdminReservationList(status, overdue);
 
         model.addAttribute("reservations", reservations);
         model.addAttribute("selectedStatus", status);
         model.addAttribute("statuses", List.of(
                 ReservationStatus.PENDING,
                 ReservationStatus.APPROVED,
-                ReservationStatus.RETURN_PENDING
+                ReservationStatus.RETURN_PENDING,
+                ReservationStatus.BORROWED
         ));
+        model.addAttribute("selectedOverdue", overdue);
         return "reservations/list";
     }
 

@@ -22,4 +22,5 @@ public class BorrowRecord {
     BorrowStatus status;
 
     String remark;  // 记录
+    Boolean overdue; // 是否逾期
 }

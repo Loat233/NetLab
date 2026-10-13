@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BorrowService {
@@ -147,7 +149,10 @@ public class BorrowService {
             throw new IllegalArgumentException("当前设备状态不可归还");
         }
 
-        int borrowRows = borrowMapper.requestReturn(id);
+        LocalDateTime requestedAt = LocalDateTime.now();
+        Boolean overdue = requestedAt.isAfter(reservation.getEndTime());
+
+        int borrowRows = borrowMapper.requestReturn(id, requestedAt, overdue);
         if (borrowRows != 1) {
             throw new IllegalStateException("该借用记录申请归还失败，请稍后重试");
         }

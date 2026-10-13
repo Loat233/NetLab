@@ -276,6 +276,21 @@
                 </option>
             </select>
 
+            <label for="overdue">逾期状态：</label>
+
+            <select id="overdue" name="overdue">
+                <option value=""
+                        th:selected="${selectedOverdue == null}">
+                    全部
+                </option>
+
+                <option value="true"
+                        th:selected="${selectedOverdue == true}">
+                    只看逾期
+                </option>
+            </select>
+
+
             <button class="button primary" type="submit">
                 查询
             </button>

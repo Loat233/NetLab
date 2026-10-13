@@ -78,8 +78,8 @@ public class ReservationService {
     public List<Reservation> getReturnPendingList() {return reservationMapper.selectReturnPending();}
 
     // 根据预约单状态得到预约单
-    public List<Reservation> getAdminReservationList(ReservationStatus status) {
-        return reservationMapper.selectAdminList(status);
+    public List<Reservation> getAdminReservationList(ReservationStatus status, Boolean overdue) {
+        return reservationMapper.selectAdminList(status, overdue);
     }
 
     // 用户创建并向数据库提交预约单
