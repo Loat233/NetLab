@@ -28,7 +28,7 @@
                 <a th:href="@{/devices/{id}(id=${device.id})}">
                     查看详情
                 </a>
-                <span sec:authorize="hasAnyRole('ADMIN', 'LAB_ADMIN')">
+                <span sec:authorize="hasAnyRole('ADMIN')">
                     <a th:href="@{/admin/devices/{id}/edit(id=${device.id})}">
                         编辑
                     </a>
@@ -44,7 +44,7 @@
     <a th:href="@{/admin/devices/add}">
         添加设备
     </a>
-    <a sec:authorize="hasAnyRole('ADMIN', 'LAB_ADMIN')"
+    <a sec:authorize="hasAnyRole('ADMIN')"
        th:href="@{/admin/fault-records}">
         查看全部故障单
     </a>

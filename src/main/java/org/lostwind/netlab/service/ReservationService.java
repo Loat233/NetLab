@@ -6,6 +6,7 @@ import org.lostwind.netlab.entity.Device;
 import org.lostwind.netlab.entity.Reservation;
 import org.lostwind.netlab.enums.DeviceStatus;
 import org.lostwind.netlab.enums.ReservationStatus;
+import org.lostwind.netlab.mapper.DeviceMapper;
 import org.lostwind.netlab.mapper.ReservationMapper;
 import org.lostwind.netlab.util.CodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ import java.util.List;
 public class ReservationService {
     @Autowired
     ReservationMapper reservationMapper;
+    @Autowired
+    DeviceMapper deviceMapper;
     @Autowired
     DeviceService deviceService;
     @Autowired
@@ -156,14 +159,22 @@ public class ReservationService {
     public void approveReservation(Integer reservationId, Integer reviewerId) {
         // 防止普通用户批准预约
         Account account = accountService.getAccountById(reviewerId);
-        if (!account.getRole().equals("ADMIN") && !account.getRole().equals("LAD_ADMIN")) {
+        if (!account.getRole().equals("ADMIN")) {
             throw new IllegalArgumentException("当前用户无权修改预约状态");
         }
-        // 判断预约是否存在
-        Reservation reservation = reservationMapper.selectById(reservationId);
-        if (reservation == null) {
+
+        // 第一次查询只用于判断预约是否存在,并取得device_id
+        Reservation preview = reservationMapper.selectById(reservationId);
+        if (preview == null) {
             throw new IllegalArgumentException("该预约不存在");
         }
+        Device device = deviceMapper.selectByIdForUpdate(preview.getDeviceId());
+        if (device == null) {
+            throw new IllegalArgumentException("预约对应的设备不存在");
+        }
+
+        // 获取设备锁后再重新读取预约，并对预约加锁
+        Reservation reservation = reservationMapper.selectByIdForUpdate(reservationId);
         // 判断预约状态
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new IllegalArgumentException("只有待审核预约才能批准");
@@ -173,13 +184,13 @@ public class ReservationService {
             throw new IllegalArgumentException("预约开始时间已过，请重新申请");
         }
         // 当设备不可用时，不能批准
-        Device device = deviceService.getDeviceById(reservation.getDeviceId());
         if (device.getStatus() != DeviceStatus.AVAILABLE && device.getStatus() != DeviceStatus.BORROWED) {
             throw new IllegalArgumentException("当前设备不可预约");
         }
-        // 预约创建后，可能设备在其他有冲突时间的预约中被批准，因此需要重新检查冲突
-        int conflicts = reservationMapper.countConflict(reservation.getDeviceId(), reservation.getStartTime(), reservation.getEndTime());
-        if (conflicts > 0) {
+
+        // 检查该设备是否存在其他有冲突时间的预约，并对查询数据加锁
+        List<Integer> conflicts = reservationMapper.selectConflictIdsForUpdate(reservation.getDeviceId(), reservation.getStartTime(), reservation.getEndTime());
+        if (!conflicts.isEmpty()) {
             throw new IllegalArgumentException("该时段与其他已批准预约冲突，无法批准");
         }
 
@@ -199,7 +210,7 @@ public class ReservationService {
         }
         // 防止普通用户批准预约
         Account account = accountService.getAccountById(reviewerId);
-        if (!account.getRole().equals("ADMIN") && !account.getRole().equals("LAD_ADMIN")) {
+        if (!account.getRole().equals("ADMIN")) {
             throw new IllegalArgumentException("当前用户无权修改预约状态");
         }
         // 判断预约是否存在

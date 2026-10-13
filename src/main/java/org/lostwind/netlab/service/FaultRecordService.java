@@ -4,6 +4,7 @@ import org.lostwind.netlab.entity.*;
 import org.lostwind.netlab.enums.BorrowStatus;
 import org.lostwind.netlab.enums.DeviceStatus;
 import org.lostwind.netlab.enums.FaultStatus;
+import org.lostwind.netlab.mapper.DeviceMapper;
 import org.lostwind.netlab.mapper.FaultRecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,8 @@ public class FaultRecordService {
     private ReservationService reservationService;
     @Autowired
     private DeviceService deviceService;
+    @Autowired
+    private DeviceMapper deviceMapper;
 
 
     // 得到所有的故障单
@@ -95,7 +98,7 @@ public class FaultRecordService {
     @Transactional
     public void createFaultRecordByAdmin(Integer deviceId, Integer reporterId, String description) {
         Account account = accountService.getAccountById(reporterId);
-        if (!"ADMIN".equals(account.getRole()) && !"LAB_ADMIN".equals(account.getRole())) {
+        if (!"ADMIN".equals(account.getRole())) {
             throw new IllegalArgumentException("当前用户无权登记设备故障");
         }
 
@@ -135,24 +138,40 @@ public class FaultRecordService {
     @Transactional
     public void startMaintenance(String accountName, Integer recordId) {
         Account account = accountService.getAccountByUsername(accountName);
-        if (!"ADMIN".equals(account.getRole()) && !"LAB_ADMIN".equals(account.getRole())) {
+        if (!"ADMIN".equals(account.getRole())) {
             throw new IllegalArgumentException("当前用户无权限处理故障单");
         }
 
-        FaultRecord record = getFaultRecordById(recordId);
+        // 第一次只读取device_id
+        FaultRecord preview = getFaultRecordById(recordId);
+        if (preview == null) {
+            throw new IllegalArgumentException("故障单不存在");
+        }
+
+        // 得到device并上锁
+        Device device = deviceMapper.selectByIdForUpdate(preview.getDeviceId());
+        // 得到record并上锁
+        FaultRecord record = faultRecordMapper.selectByIdForUpdate(recordId);
+        if (record == null) {
+            throw new IllegalArgumentException("故障单不存在");
+        }
+
         if (record.getStatus() != FaultStatus.PENDING) {
             throw new IllegalArgumentException("该故障单的状态不可维修");
         }
 
-        Device device = deviceService.getDeviceById(record.getDeviceId());
         if (device.getStatus() != DeviceStatus.DAMAGED) {
             throw new IllegalArgumentException("设备未归还或不处于损坏状态，不能维修");
         }
 
-        deviceService.updateStatus(record.getDeviceId(),DeviceStatus.MAINTENANCE);
-        int rows = faultRecordMapper.updateStatus(recordId, FaultStatus.PROCESSING);
-        if (rows != 1) {
-            throw new IllegalArgumentException("故障单状态更新失败");
+        int deviceRows = deviceMapper.startMaintenance(device.getId());
+        if (deviceRows != 1) {
+            throw new IllegalStateException("设备状态已经发生改变");
+        }
+
+        int recordRows = faultRecordMapper.startProcessing(recordId);
+        if (recordRows != 1) {
+            throw new IllegalArgumentException("故障单状态已发生改变");
         }
     }
 
@@ -160,7 +179,7 @@ public class FaultRecordService {
     @Transactional
     public void setRecordResult(String accountName, Integer recordId, boolean result) {
         Account account = accountService.getAccountByUsername(accountName);
-        if (!"ADMIN".equals(account.getRole()) && !"LAB_ADMIN".equals(account.getRole())) {
+        if (!"ADMIN".equals(account.getRole())) {
             throw new IllegalArgumentException("当前用户无权限处理故障单");
         }
 

@@ -14,6 +14,9 @@ public interface DeviceMapper {
     @Select("select * from device where id = #{id}")
     Device selectById(int id);
 
+    @Select("select * from device where id = #{id} for update")
+    Device selectByIdForUpdate(int id);
+
     @Select("select * from device where asset_code = #{assetCode}")
     Device selectByAssetCode(String assetCode);
 
@@ -59,5 +62,9 @@ public interface DeviceMapper {
     // 单独修改设备的状态
     @Update("update device set status = #{status}, updated_at = NOW() where id = #{id}")
     int updateStatus(@Param("id") int id, @Param("status") DeviceStatus status);
+
+
+    @Update("update device set status = 'MAINTENANCE', updated_at = NOW() where id = #{id} and status = 'DAMAGED'")
+    int startMaintenance(Integer id);
 
 }

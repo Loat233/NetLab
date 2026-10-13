@@ -47,7 +47,7 @@ public class SecurityConfiguration {
                             "/view/error/**",
                             "/auth/verification-code/send",
                             "/error").permitAll();
-                    auth.requestMatchers("/admin/**").hasAnyRole("ADMIN", "LAB_ADMIN");
+                    auth.requestMatchers("/admin/**").hasAnyRole("ADMIN");
                     auth.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {

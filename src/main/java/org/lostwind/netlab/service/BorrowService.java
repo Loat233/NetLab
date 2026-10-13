@@ -59,21 +59,31 @@ public class BorrowService {
             throw new IllegalArgumentException("该预约已被其他管理员受理");
         }
 
-        Reservation reservation = reservationService.getReservationById(reservationId);
+        // 第一普通查询，只获得device_id
+        Reservation preview = reservationMapper.selectById(reservationId);
+        if (preview == null) {
+            throw new IllegalArgumentException("预约不存在");
+        }
+
+        // 对设备加锁
+        Device device = deviceMapper.selectByIdForUpdate(preview.getDeviceId());
+        // 对预约记录加锁
+        Reservation reservation = reservationMapper.selectByIdForUpdate(reservationId);
+
+        if (reservation.getStatus() != ReservationStatus.APPROVED) {
+            throw new IllegalArgumentException("只有审核通过的预约才能借出");
+        }
+
+        if (device.getStatus() != DeviceStatus.AVAILABLE) {
+            throw new IllegalArgumentException("设备当前状态不可借出");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(reservation.getStartTime())) {
             throw new IllegalArgumentException("还未到预约开始时间");
         }
         if (!now.isBefore(reservation.getEndTime())) {
             throw new IllegalArgumentException("该预约已经过期");
-        }
-        if (reservation.getStatus() != ReservationStatus.APPROVED) {
-            throw new IllegalArgumentException("只有审核通过的预约才能借出");
-        }
-
-        Device device = deviceService.getDeviceById(reservation.getDeviceId());
-        if (device.getStatus() != DeviceStatus.AVAILABLE) {
-            throw new IllegalArgumentException("设备当前状态不可借出");
         }
 
         BorrowRecord record = new BorrowRecord();
@@ -144,13 +154,14 @@ public class BorrowService {
     public void returnPending(Integer id, Integer accountId) {
         Reservation reservation = reservationService.getReturnableUserReservationById(accountId, id);
         Device device = deviceService.getDeviceById(reservation.getDeviceId());
+        BorrowRecord record = borrowMapper.selectByReservationId(id);
 
         if (device.getStatus() != DeviceStatus.BORROWED) {
             throw new IllegalArgumentException("当前设备状态不可归还");
         }
 
         LocalDateTime requestedAt = LocalDateTime.now();
-        Boolean overdue = requestedAt.isAfter(reservation.getEndTime());
+        Boolean overdue = requestedAt.isAfter(record.getDueAt());
 
         int borrowRows = borrowMapper.requestReturn(id, requestedAt, overdue);
         if (borrowRows != 1) {

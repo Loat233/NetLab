@@ -15,6 +15,9 @@ public interface ReservationMapper {
     @Select("select * from reservation where id = #{id}")
     Reservation selectById(Integer id);
 
+    @Select("select * from reservation where id = #{id} for update")
+    Reservation selectByIdForUpdate(Integer id);
+
     @Select("select * from reservation where applicant_id = #{applicantId} order by created_at desc")
     List<Reservation> selectByApplicantId(Integer applicantId);
 
@@ -35,6 +38,23 @@ public interface ReservationMapper {
                       @Param("startTime") LocalDateTime startTime,
                       @Param("endTime") LocalDateTime endTime);
 
+    @Select("""
+        select id
+        from reservation
+        where device_id = #{deviceId}
+          and status in (
+              'APPROVED',
+              'BORROWED',
+              'RETURN_PENDING'
+          )
+          and start_time < #{endTime}
+          and end_time > #{startTime}
+        for update
+    """)
+    List<Integer> selectConflictIdsForUpdate(@Param("deviceId") Integer deviceId,
+                      @Param("startTime") LocalDateTime startTime,
+                      @Param("endTime") LocalDateTime endTime);
+
     @Select("select * from reservation where status = 'PENDING' order by created_at asc, id asc")
     List<Reservation> selectPending();
 
@@ -49,7 +69,7 @@ public interface ReservationMapper {
         select r.* from reservation r
         left join borrow_record b
             on b.reservation_id = r.id
-        where r.status in ('PENDING', 'APPROVED', 'RETURN_PENDING', 'BORROWED')
+        where r.status in ('PENDING', 'APPROVED', 'RETURN_PENDING', 'BORROWED', 'COMPLETED')
         <if test='status != null'>
             and r.status = #{status}
         </if>

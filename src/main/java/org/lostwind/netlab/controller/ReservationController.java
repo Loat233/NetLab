@@ -157,7 +157,8 @@ public class ReservationController {
                 ReservationStatus.PENDING,
                 ReservationStatus.APPROVED,
                 ReservationStatus.RETURN_PENDING,
-                ReservationStatus.BORROWED
+                ReservationStatus.BORROWED,
+                ReservationStatus.COMPLETED
         ));
         model.addAttribute("selectedOverdue", overdue);
         return "reservations/list";
