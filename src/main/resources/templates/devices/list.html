@@ -1,56 +1,409 @@
 <!DOCTYPE html>
-<html lang="zh-CN"
-      xmlns:th="http://www.thymeleaf.org"
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-    <body>
-    <table>
-        <thead>
-        <tr>
-            <th>资产编号</th>
-            <th>设备名称</th>
-            <th>型号</th>
-            <th>状态</th>
-            <th>操作</th>
-        </tr>
-        </thead>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备列表</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        <tbody>
-        <tr th:each="device : ${devices}">
-            <td th:text="${device.assetCode}"></td>
-            <td th:text="${device.deviceName}"></td>
-            <td th:text="${device.model}"></td>
-            <td th:text="${device.status}"></td>
-            <td>
-                <a th:href="@{/devices/{id}(id=${device.id})}">
-                    查看详情
-                </a>
-                <span sec:authorize="hasAnyRole('ADMIN')">
-                    <a th:href="@{/admin/devices/{id}/edit(id=${device.id})}">
-                        编辑
-                    </a>
-                    <a th:if="${device.status.name() == 'AVAILABLE'}"
-                       th:href="@{/admin/devices/{deviceId}/report-fault(deviceId=${device.id})}">
-                        登记故障
-                    </a>
-                </span>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <a th:href="@{/admin/devices/add}">
-        添加设备
-    </a>
-    <a sec:authorize="hasAnyRole('ADMIN')"
-       th:href="@{/admin/fault-records}">
-        查看全部故障单
-    </a>
-    <div th:if="${message}"
-         th:text="${message}"
-         style="color: green">
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: #263445;
+            background: #f4f7fb;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            display: flex;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #f7f4fc 0%, #ede7f8 100%);
+            border: 1px solid #d9cff0;
+            border-radius: 14px;
+            box-shadow:
+                    0 14px 34px rgba(124, 58, 237, .09),
+                    0 4px 8px rgba(124, 58, 237, .05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-logo{
+            padding:20px 22px;
+            font-size:18px;
+            font-weight:bold;
+            text-align:center;
+            border-bottom:1px solid #d9cff0;
+            box-shadow: 0 3px 4px rgba(124, 58, 237, 0.06);
+        }
+        .sidebar-menu{
+            list-style:none;
+            padding:12px;
+            margin:0;
+            flex:1;
+            box-shadow: 0 2px 3px rgba(124, 58, 237, 0.03);
+        }
+        .sidebar-menu li{
+            margin-bottom:4px;
+        }
+        .sidebar-menu li a{
+            display:block;
+            padding:12px 14px;
+            border-radius:9px;
+            text-decoration:none;
+            color:#4d5968;
+        }
+        .sidebar-menu li a:hover{
+            background:#e3daf2;
+        }
+        .sidebar-menu li a.active{
+            background:#e9e1f6;
+            color:#6b21a8;
+        }
+        .sidebar-user{
+            padding:12px 14px 18px;
+            border-top:1px solid #d9cff0;
+            box-shadow: 0 1px 2px rgba(124, 58, 237, 0.01);
+        }
+        .user-info-text{
+            color:#4d5968;
+            font-size:14px;
+        }
+
+        .page-shell {
+            max-width: 1280px;
+            width: 100%;
+            margin: 36px;
+        }
+
+        .page-head {
+            margin-bottom: 22px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+        .page-head-text h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+        .page-head-text p {
+            margin: 0;
+            color: #667182;
+        }
+        .page-head-btn-group{
+            display:flex;
+            flex-direction:row;
+            gap:10px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            height: 38px;
+            padding: 0 15px;
+            border-radius: 7px;
+            text-decoration: none;
+            cursor: pointer;
+            border:none;
+        }
+        .button.green{
+            color:#fff;
+            background:#0f766e;
+        }
+        .button.gray{
+            color:#333;
+            background:#ffffff;
+            border:1px solid #d8dee7;
+        }
+
+        .notice {
+            margin-bottom: 22px;
+            padding:13px 16px;
+            border-radius:8px;
+        }
+        .notice.success{
+            background:#f0fff7;
+            border:1px solid #b7ebd2;
+            color:#168a5b;
+        }
+        .notice.error{
+            background:#fff1f0;
+            border:1px solid #ffccc7;
+            color:#cf1322;
+        }
+
+        .card {
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 14px;
+            width: 100%;
+        }
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #e8edf3;
+        }
+        .card-head h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .count-tag {
+            padding: 6px 11px;
+            color: #7b8794;
+            background: #eff8ff;
+            border-radius: 999px;
+            font-size: 13px;
+        }
+
+        .table-wrap {
+            overflow-x:auto;
+            width: 100%;
+        }
+        .table-wrap table{
+            width:100%;
+            border-collapse: collapse;
+        }
+        th,td{
+            padding:16px 22px;
+            border-bottom: 1px solid #edf0f4;
+            text-align:left;
+            vertical-align:middle;
+        }
+        th {
+            color:#667182;
+            background:#f8fafc;
+            font-size:13px;
+        }
+        td {
+            font-size:14px;
+        }
+
+        /* 和预约页面完全一致胶囊样式，适配【可用、维修中、下架】 */
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+        .status-idle {
+            color: #237804;
+            background: #f6ffed;
+        }
+        .status-repairing {
+            color: #cf1322;
+            background: #fff2f0;
+        }
+        .status-offline {
+            color: #595959;
+            background: #f5f5f5;
+        }
+        .status-default {
+            color: #4d5968;
+            background: #f0f2f5;
+        }
+
+        .action-group{
+            display:flex;
+            gap:8px;
+        }
+
+        .empty-tip {
+            padding:70px 22px;
+            text-align:center;
+            color:#7b8794;
+        }
+
+        @media (max-width:900px){
+            body{
+                flex-direction:column;
+                padding:20px;
+                gap:20px;
+            }
+            .sidebar{
+                width:100%;
+            }
+            .page-head-btn-group{
+                flex-wrap: wrap;
+            }
+        }
+
+        .filter-form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 12px;
+        }
+
+        .filter-form input,
+        .filter-form select {
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #d8dee7;
+            border-radius: 7px;
+            background: #fff;
+            color: #263445;
+        }
+
+        .filter-form input {
+            width: 280px;
+        }
+
+        .filter-form select {
+            min-width: 140px;
+        }
+    </style>
+</head>
+
+<body>
+<aside class="sidebar">
+    <div class="sidebar-logo">实验室管理系统</div>
+    <ul class="sidebar-menu">
+        <li>
+            <a th:href="@{/}" >控制台</a >
+        </li>
+        <li>
+            <a th:href="@{/devices}" class="active">设备管理</a >
+        </li>
+        <!-- 用户专属：我的预约 -->
+        <li sec:authorize="hasRole('USER')">
+            <a th:href="@{/my/reservations}">我的预约</a >
+        </li>
+        <li sec:authorize="hasRole('USER')">
+            <a th:href="@{/my/fault-records}">我的故障单</a >
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/reservations}">预约管理</a >
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/fault-records}">故障单管理</a >
+        </li>
+    </ul>
+    <div class="sidebar-user">
+        <div class="user-info-text">
+            <span sec:authentication="name"></span>
+            <span sec:authorize="hasRole('ADMIN')">（管理员）</span>
+            <span sec:authorize="hasRole('USER')">（普通用户）</span>
+        </div>
     </div>
+</aside>
+
+<main class="page-shell">
+    <header class="page-head">
+        <div class="page-head-text">
+            <h1>设备列表</h1>
+            <p>查看、编辑设备信息，登记设备故障。</p >
+        </div>
+        <!-- 按钮并排：添加设备在左边，返回首页在右边 -->
+        <div class="page-head-btn-group">
+            <a class="button green" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/devices/add}">添加设备</a >
+            <a class="button gray" th:href="@{/index}">返回首页</a >
+        </div>
+    </header>
+
+    <div class="notice success" th:if="${message}" th:text="${message}"></div>
+    <div class="notice error" th:if="${error}" th:text="${error}"></div>
+
+    <form class="filter-form"
+          method="get"
+          th:action="@{/devices}">
+
+        <input type="text"
+               name="keyword"
+               th:value="${keyword}"
+               placeholder="设备名称、资产编号或型号">
+
+        <select name="status">
+            <option value="">全部状态</option>
+
+            <option th:each="deviceStatus : ${statuses}"
+                    th:value="${deviceStatus.name()}"
+                    th:text="${deviceStatus.label}"
+                    th:selected="${deviceStatus == selectedStatus}">
+            </option>
+        </select>
+
+        <button class="button green" type="submit">
+            查询
+        </button>
+
+        <a class="button gray" th:href="@{/devices}">
+            重置
+        </a>
+    </form>
+
+    <section class="card">
+        <div class="card-head">
+            <div class="card-head-left">
+                <h2>设备数据</h2>
+                <div style="flex: 1;"></div>
+                <span class="count-tag" th:text="|共 ${devices == null ? 0 : devices.size()} 条|">共 0 条</span>
+            </div>
+        </div>
+
+        <div class="empty-tip" th:if="${devices == null or #lists.isEmpty(devices)}">
+            暂无设备记录
+        </div>
+
+        <div class="table-wrap" th:if="${devices != null and not #lists.isEmpty(devices)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>资产编号</th>
+                    <th>设备名称</th>
+                    <th>型号</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="device : ${devices}">
+                    <td th:text="${device.assetCode}"></td>
+                    <td th:text="${device.deviceName}"></td>
+                    <td th:text="${device.model}"></td>
+                    <td>
+                        <span class="status"
+                              th:classappend="${
+                                  device.status.label == '可用'
+                                  ? 'status-idle'
+                                  : device.status.label == '维修中'
+                                  ? 'status-repairing'
+                                  : device.status.label == '下架'
+                                  ? 'status-offline'
+                                  : 'status-default'
+                              }"
+                              th:text="${device.status.label}">
+                        </span>
+                    </td>
+                    <td class="action-group">
+                        <a class="button gray" th:href="@{/devices/{id}(id=${device.id})}">查看详情</a >
+                        <a class="button green" sec:authorize="hasRole('ADMIN')"
+                           th:href="@{/admin/devices/{id}/edit(id=${device.id})}">编辑</a >
+                        <a class="button green" sec:authorize="hasRole('ADMIN')"
+                           th:href="@{/admin/devices/{deviceId}/report-fault(deviceId=${device.id})}">登记故障</a >
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
 </body>
 </html>

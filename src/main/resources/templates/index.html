@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-		<title> Pear Admin Layui </title>
+		<title>NetLab 网络实验室设备管理平台</title>
 		<!-- 依 赖 样 式 -->
 		<link rel="stylesheet" href="/component/pear/css/pear.css" />
 		<!-- 加 载 样 式-->
@@ -38,7 +38,7 @@
 						<!-- 功 能 菜 单 -->
 						<dl class="layui-nav-child">
 							<dd><a user-menu-url="view/system/person.html" user-menu-id="5555" user-menu-title="基本资料">基本资料</a></dd>
-							<dd><a href="login.html">注销登录</a></dd>
+							<dd><a href="/doLogout">注销登录</a></dd>
 						</dl>
 					</li>
 					<!-- 主 题 配 置 -->
@@ -74,6 +74,17 @@
 		<!-- 依 赖 脚 本 -->
 		<script src="/component/layui/layui.js"></script>
 		<script src="/component/pear/pear.js"></script>
+		<script th:inline="javascript">
+			window.dashboardStatistics = {
+				totalReservations: /*[[${statistics.totalReservations}]]*/ 0,
+				availableDevices: /*[[${statistics.availableDevices}]]*/ 0,
+				borrowedReservations: /*[[${statistics.borrowedReservations}]]*/ 0,
+				unsolvedReservations: /*[[${statistics.unsolvedReservations}]]*/ 0,
+				availablePreview: /*[[${statistics.availablePreview}]]*/ []
+			};
+			window.dashboardReviews = /*[[${reviews}]]*/ [];
+			window.currentAccountId = /*[[${currentAccountId}]]*/ null;
+		</script>
 		<!-- 框 架 初 始 化 -->
 		<script>
 			layui.use(['admin','jquery',"convert"], function() {

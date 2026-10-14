@@ -1,38 +1,141 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的故障单 - NetLab</title>
-
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      background: #f4f7fb;
       color: #263445;
+      background: #f4f7fb;
       font-family: "Microsoft YaHei", Arial, sans-serif;
+      display: flex;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    /* 侧边栏【完全复制设备列表原版CSS，一字不改】 */
+    .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #f7f4fc 0%, #ede7f8 100%);
+      border: 1px solid #d9cff0;
+      border-radius: 14px;
+      box-shadow:
+              0 14px 34px rgba(124, 58, 237, .09),
+              0 4px 8px rgba(124, 58, 237, .05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo{
+      padding:20px 22px;
+      font-size:18px;
+      font-weight:bold;
+      text-align:center;
+      border-bottom:1px solid #d9cff0;
+      box-shadow: 0 3px 4px rgba(124, 58, 237, 0.06);
+    }
+    .sidebar-menu{
+      list-style:none;
+      padding:12px;
+      margin:0;
+      flex:1;
+      box-shadow: 0 2px 3px rgba(124, 58, 237, 0.03);
+    }
+    .sidebar-menu li{
+      margin-bottom:4px;
+    }
+    .sidebar-menu li a{
+      display:block;
+      padding:12px 14px;
+      border-radius:9px;
+      text-decoration:none;
+      color:#4d5968;
+    }
+    .sidebar-menu li a:hover{
+      background:#e3daf2;
+    }
+    .sidebar-menu li a.active{
+      background:#e9e1f6;
+      color:#6b21a8;
+    }
+    .sidebar-user{
+      padding:12px 14px 18px;
+      border-top:1px solid #d9cff0;
+      box-shadow: 0 1px 2px rgba(124, 58, 237, 0.01);
+    }
+    .user-info-text{
+      color:#4d5968;
+      font-size:14px;
     }
 
     .page-shell {
-      width: min(1100px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 36px 0 60px;
+      max-width: 1280px;
+      width: 100%;
+      margin: 36px 0 0 150px;
     }
 
-    .back-link {
-      display: inline-block;
-      margin-bottom: 18px;
-      color: #607080;
+    .page-head {
+      margin-bottom: 22px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .page-head-text h1 {
+      margin: 0 0 8px;
+      font-size: 27px;
+    }
+    .page-head-text p {
+      margin: 0;
+      color: #667182;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 90px;
+      height: 38px;
+      padding: 0 15px;
+      border-radius: 7px;
       text-decoration: none;
+      cursor: pointer;
+      border:none;
+    }
+    .button.green{
+      color:#fff;
+      background:#0f766e;
+    }
+    .button.gray{
+      color:#333;
+      background:#ffffff;
+      border:1px solid #d8dee7;
     }
 
-    .back-link:hover {
-      color: #16baaa;
+    .notice {
+      margin-bottom: 22px;
+      padding:13px 16px;
+      border-radius:8px;
+    }
+    .notice.success{
+      background:#f0fff7;
+      border:1px solid #b7ebd2;
+      color:#168a5b;
+    }
+    .notice.error{
+      background:#fff1f0;
+      border:1px solid #ffccc7;
+      color:#cf1322;
     }
 
     .card {
@@ -40,162 +143,174 @@
       background: #fff;
       border: 1px solid #e8edf3;
       border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(31, 45, 61, .07);
+      width: 100%;
     }
-
-    .card-header {
+    .card-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      padding: 26px 30px;
-      border-bottom: 1px solid #edf0f4;
-      background: linear-gradient(135deg, #effdfa, #f7fbff);
+      padding: 18px 22px;
+      border-bottom: 1px solid #e8edf3;
     }
-
-    .card-header h1 {
-      margin: 0 0 8px;
-      font-size: 26px;
+    .card-head-left{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      flex:1;
     }
-
-    .card-header p {
+    .card-head h2 {
       margin: 0;
+      font-size: 18px;
+    }
+    .count-tag {
+      padding: 6px 11px;
       color: #7b8794;
-      font-size: 14px;
-    }
-
-    .count {
-      flex-shrink: 0;
-      padding: 7px 13px;
+      background: #eff8ff;
       border-radius: 999px;
-      color: #078d79;
-      background: #e8faf6;
-      font-size: 14px;
-    }
-
-    .alert {
-      margin: 24px 30px 0;
-      padding: 12px 15px;
-      border: 1px solid #ffd6d2;
-      border-radius: 8px;
-      color: #b42318;
-      background: #fff1f0;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      padding: 24px 30px 30px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      white-space: nowrap;
-    }
-
-    th, td {
-      padding: 15px 14px;
-      border-bottom: 1px solid #edf0f4;
-      text-align: left;
-    }
-
-    th {
-      color: #667085;
-      background: #f8fafc;
       font-size: 13px;
-      font-weight: 600;
     }
 
+    .table-wrap {
+      overflow-x:auto;
+      width: 100%;
+    }
+    .table-wrap table{
+      width:100%;
+      border-collapse: collapse;
+    }
+    th,td{
+      padding:16px 22px;
+      border-bottom: 1px solid #edf0f4;
+      text-align:left;
+      vertical-align:middle;
+    }
+    th {
+      color:#667182;
+      background:#f8fafc;
+      font-size:13px;
+    }
     td {
-      font-size: 14px;
+      font-size:14px;
     }
 
+    .status-tag {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size:12px;
+    }
+    .action-group{
+      display:flex;
+      gap:8px;
+    }
+
+    .empty-tip {
+      padding:70px 22px;
+      text-align:center;
+      color:#7b8794;
+    }
+
+    /* 保留你故障单页面原有样式 */
     .description {
       min-width: 220px;
       max-width: 360px;
       white-space: normal;
       line-height: 1.6;
     }
-
     .status {
       display: inline-block;
       padding: 5px 10px;
       border-radius: 999px;
       font-size: 13px;
     }
-
     .status-pending {
       color: #b54708;
       background: #fff4e5;
     }
-
     .status-processing {
       color: #175cd3;
       background: #eff8ff;
     }
-
     .status-resolved {
       color: #067647;
       background: #ecfdf3;
     }
 
-    .empty {
-      padding: 70px 20px;
-      color: #8a94a3;
-      text-align: center;
-    }
-
-    .empty strong {
-      display: block;
-      margin-bottom: 8px;
-      color: #4d5968;
-      font-size: 18px;
-    }
-
-    @media (max-width: 600px) {
-      .card-header {
-        align-items: flex-start;
-        flex-direction: column;
+    @media (max-width:900px){
+      body{
+        flex-direction:column;
+        padding:20px;
+        gap:20px;
       }
-
-      .card-header,
-      .table-wrapper {
-        padding-left: 20px;
-        padding-right: 20px;
+      .sidebar{
+        width:100%;
       }
     }
   </style>
 </head>
 
 <body>
+<!-- 侧边栏和设备列表完全一致，我的故障单active高亮 -->
+<aside class="sidebar">
+  <div class="sidebar-logo">实验室管理系统</div>
+  <ul class="sidebar-menu">
+    <li>
+      <a th:href="@{/}" >控制台</a >
+    </li>
+    <li>
+      <a th:href="@{/devices}">设备管理</a >
+    </li>
+    <li sec:authorize="hasRole('USER')">
+      <a th:href="@{/my/reservations}">我的预约</a >
+    </li>
+    <li sec:authorize="hasRole('USER')">
+      <a th:href="@{/my/fault-records}" class="active">我的故障单</a >
+    </li>
+    <li sec:authorize="hasRole('ADMIN')">
+      <a th:href="@{/admin/reservations}">预约管理</a >
+    </li>
+    <li sec:authorize="hasRole('ADMIN')">
+      <a th:href="@{/admin/fault-records}">故障单管理</a >
+    </li>
+  </ul>
+  <div class="sidebar-user">
+    <div class="user-info-text">
+      <span sec:authentication="name"></span>
+      <span sec:authorize="hasRole('ADMIN')">（管理员）</span>
+      <span sec:authorize="hasRole('USER')">（普通用户）</span>
+    </div>
+  </div>
+</aside>
+
 <main class="page-shell">
-  <a class="back-link" th:href="@{/my/reservations}">
-    ← 返回我的预约
-  </a>
+  <header class="page-head">
+    <div class="page-head-text">
+      <h1>我的故障单</h1>
+      <p>查看自己提交的设备故障及处理进度</p >
+    </div>
+    <a class="button gray" th:href="@{/index}">← 返回首页</a >
+  </header>
+
+  <div class="notice error"
+       th:if="${error}"
+       th:text="${error}">
+    查询故障单失败
+  </div>
 
   <section class="card">
-    <header class="card-header">
-      <div>
-        <h1>我的故障单</h1>
-        <p>查看自己提交的设备故障及处理进度</p>
+    <div class="card-head">
+      <div class="card-head-left">
+        <h2>故障单列表</h2>
+        <span class="count-tag"
+              th:if="${records != null}"
+              th:text="|共 ${records.size()} 条|">
+                    共 0 条
+                </span>
       </div>
-
-      <span class="count"
-            th:if="${records != null}"
-            th:text="|共 ${records.size()} 条|">
-                共 0 条
-            </span>
-    </header>
-
-    <div class="alert"
-         th:if="${error}"
-         th:text="${error}">
-      查询故障单失败
     </div>
 
-    <div class="table-wrapper"
+    <div class="table-wrap"
          th:if="${records != null and not #lists.isEmpty(records)}">
-
       <table>
         <thead>
         <tr>
@@ -208,41 +323,34 @@
           <th>解决时间</th>
         </tr>
         </thead>
-
         <tbody>
         <tr th:each="record : ${records}">
           <td th:text="${record.id}">1</td>
-
           <td th:text="${record.deviceId}">1</td>
-
           <td th:text="${record.borrowRecordId == null
-                                  ? '无关联借用'
-                                  : record.borrowRecordId}">
+                                          ? '无关联借用'
+                                          : record.borrowRecordId}">
             1
           </td>
-
           <td class="description"
               th:text="${record.description}">
             故障描述
           </td>
-
           <td>
-                        <span class="status"
-                              th:classappend="${' status-' + #strings.toLowerCase(record.status.name())}"
-                              th:text="${record.status.label}">
-                            待处理
-                        </span>
+                    <span class="status"
+                          th:classappend="${' status-' + #strings.toLowerCase(record.status.name())}"
+                          th:text="${record.status.label}">
+                      待处理
+                    </span>
           </td>
-
           <td th:text="${record.reportedAt == null
-                                  ? '-'
-                                  : #strings.replace(record.reportedAt.toString(), 'T', ' ')}">
+                                          ? '-'
+                                          : #strings.replace(record.reportedAt.toString(), 'T', ' ')}">
             2026-10-09 10:00
           </td>
-
           <td th:text="${record.resolvedAt == null
-                                  ? '尚未解决'
-                                  : #strings.replace(record.resolvedAt.toString(), 'T', ' ')}">
+                                          ? '尚未解决'
+                                          : #strings.replace(record.resolvedAt.toString(), 'T', ' ')}">
             尚未解决
           </td>
         </tr>
@@ -250,10 +358,10 @@
       </table>
     </div>
 
-    <div class="empty"
+    <div class="empty-tip"
          th:if="${records == null or #lists.isEmpty(records)}">
       <strong>暂无故障单</strong>
-      <span>你目前还没有提交过设备故障。</span>
+      <p>你目前还没有提交过设备故障。</p >
     </div>
   </section>
 </main>

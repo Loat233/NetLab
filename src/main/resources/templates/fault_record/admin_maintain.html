@@ -2,48 +2,64 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>开始维修</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开始维修 - NetLab</title>
+    <link rel="stylesheet" th:href="@{/component/pear/css/pear.css}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: #f4f7fb; color: #263445; font-family: "Microsoft YaHei", Arial, sans-serif; }
+        .page-shell { max-width: 900px; margin: 0 auto; padding: 34px 20px 56px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #1677ff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .card { background: #ffffff; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); overflow: hidden; }
+        .card-header { padding: 24px 30px; background: linear-gradient(135deg, #eefbf7, #f0faff); border-bottom: 1px solid #eee; }
+        .card-header h1 { margin:0; font-size:26px; font-weight:600; color:#263445; }
+        .card-body { padding:30px; }
+        .info-item { margin-bottom:18px; font-size:15px; }
+        .info-item label { font-weight:600; color:#4e5969; margin-right:8px; }
+        .error-tip { color: #ef4444; margin-bottom:20px; }
+        .actions { margin-top:30px; display:flex; justify-content:flex-end; gap:12px; }
+        .button { display:inline-flex; align-items:center; justify-content:center; min-width:110px; height:42px; padding:0 16px; border-radius:8px; font-size:15px; cursor:pointer; text-decoration:none; border:none; }
+        .button-default { background:#fff; color:#4e5969; border:1px solid #d0d5dd; }
+        .button-primary { background:#16b389; color:#fff; }
+        .button-primary:hover { background:#0ea37c; }
+    </style>
 </head>
 <body>
+<div class="page-shell">
+    <a class="back-link" th:href="@{/admin/fault-records}">← 返回故障单管理</a >
+    <div class="card">
+        <div class="card-header">
+            <h1>确认开始维修</h1>
+        </div>
+        <div class="card-body">
+            <div th:if="${error}" class="error-tip" th:text="${error}"></div>
 
-<h2>确认开始维修</h2>
+            <div class="info-item">
+                <label>故障单编号：</label>
+                <span th:text="${record.id}"></span>
+            </div>
+            <div class="info-item">
+                <label>设备编号：</label>
+                <span th:text="${record.deviceId}"></span>
+            </div>
+            <div class="info-item">
+                <label>故障描述：</label>
+                <span th:text="${record.description}"></span>
+            </div>
+            <div class="info-item">
+                <label>当前状态：</label>
+                <span th:text="${record.status.label}"></span>
+            </div>
 
-<p>
-    故障单编号：
-    <span th:text="${record.id}"></span>
-</p>
-
-<p>
-    设备编号：
-    <span th:text="${record.deviceId}"></span>
-</p>
-
-<p>
-    故障描述：
-    <span th:text="${record.description}"></span>
-</p>
-
-<p>
-    当前状态：
-    <span th:text="${record.status.label}"></span>
-</p>
-
-<div th:if="${error}"
-     th:text="${error}"
-     style="color: red;">
+            <form method="post" th:action="@{/admin/fault-records/{id}/maintain(id=${record.id})}">
+                <div class="actions">
+                    <a class="button button-default" th:href="@{/admin/fault-records}">取消</a >
+                    <button type="submit" class="button button-primary">确认开始维修</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
-<form method="post"
-      th:action="@{/admin/fault-records/{id}/maintain(id=${record.id})}">
-
-    <button type="submit">
-        确认开始维修
-    </button>
-
-    <a th:href="@{/admin/fault-records}">
-        取消
-    </a>
-</form>
-
 </body>
 </html>

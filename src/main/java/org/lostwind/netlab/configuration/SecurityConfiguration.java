@@ -29,10 +29,7 @@ public class SecurityConfiguration {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
-        String pwd = encoder.encode("123456"); // 生成加密后的密码，作为测试账户的密码
-        System.out.println(pwd);
-        return encoder;
+        return new BCryptPasswordEncoder();
     }
 
     @Bean

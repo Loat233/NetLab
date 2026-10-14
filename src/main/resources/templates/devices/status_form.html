@@ -4,40 +4,229 @@
 <head>
     <meta charset="UTF-8">
     <title>修改设备状态</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f2f3f5;
+            color: #303133;
+        }
+        .layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #20222a;
+            color: #c0c4cc;
+            overflow-y: auto;
+        }
+        .sidebar-logo {
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            font-size: 18px;
+            color: #fff;
+            border-bottom: 1px solid #2d303a;
+        }
+        .sidebar-menu {
+            list-style: none;
+        }
+        .menu-item>a {
+            display: block;
+            padding: 12px 20px;
+            color: #c0c4cc;
+            text-decoration: none;
+        }
+        .menu-item>a:hover {
+            background-color: #2d303a;
+            color: #42b983;
+        }
+        .menu-item.active>a {
+            color: #42b983;
+            background-color: #2d303a;
+        }
+        .submenu {
+            list-style: none;
+            background-color: #272933;
+        }
+        .submenu li a {
+            padding-left: 40px;
+        }
+        .main-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            height: 60px;
+            background-color: #fff;
+            box-shadow: 1px 1px 4px #cccccc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .header-user {
+            color: #606266;
+        }
+        .content {
+            flex:1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .breadcrumb {
+            margin-bottom: 16px;
+            font-size: 14px;
+            color:#909399;
+        }
+        .breadcrumb a {
+            color:#42b983;
+            text-decoration: none;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 1px 1px 4px #cccccc;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #ebeef5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 24px;
+        }
+        .btn {
+            padding: 7px 14px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size:14px;
+            border:none;
+            cursor:pointer;
+        }
+        .btn-primary {
+            background-color: #42b983;
+            color:#fff;
+        }
+        .btn-primary:hover {
+            background-color:#359469;
+        }
+        .btn-back {
+            background-color:#909399;
+            color:#fff;
+        }
+        .info-item {
+            margin-bottom:12px;
+        }
+        .info-item span{
+            color:#606266;
+        }
+        .form-line {
+            margin:20px 0;
+        }
+        .form-line label{
+            display:block;
+            margin-bottom:8px;
+        }
+        .form-line select{
+            width:100%;
+            padding:10px 12px;
+            border:1px solid #dcdfe6;
+            border-radius:4px;
+            font-size:14px;
+        }
+        .btn-group{
+            display:flex;
+            gap:12px;
+        }
+    </style>
 </head>
 <body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="sidebar-logo">实验室设备预约系统</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a th:href="@{/}">控制台</a >
+            </li>
+            <li class="menu-item active">
+                <a href=" ">设备管理</a >
+                <ul class="submenu">
+                    <li><a th:href="@{/devices}">设备列表</a ></li>
+                    <li><a th:href="@{/admin/devices/add}">添加设备</a ></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a th:href="@{/reservations/list}">预约管理</a >
+            </li>
+        </ul>
+    </div>
 
-<h2>修改设备状态</h2>
+    <div class="main-wrap">
+        <div class="header">
+            <div class="header-title">实验室设备预约系统</div>
+            <div class="header-user">管理员</div>
+        </div>
+        <div class="content">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a > / <a th:href="@{/devices}">设备管理</a > / 修改设备状态
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span>修改设备状态</span>
+                    <a th:href="@{/devices}" class="btn btn-back">返回列表</a >
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <label>资产编号：</label>
+                        <span th:text="${device.assetCode}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>设备名称：</label>
+                        <span th:text="${device.deviceName}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>当前状态：</label>
+                        <span th:text="${device.status.label}"></span>
+                    </div>
 
-<p>
-    资产编号：
-    <span th:text="${device.assetCode}"></span>
-</p>
-
-<p>
-    设备名称：
-    <span th:text="${device.deviceName}"></span>
-</p>
-
-<p>
-    当前状态：
-    <span th:text="${device.status.label}"></span>
-</p>
-
-<form th:action="@{/admin/devices/{id}/status(id=${device.id})}"
-      method="post">
-
-    <label for="status">新状态：</label>
-
-    <select id="status" name="status" required>
-        <option th:each="status : ${statuses}"
-                th:value="${status.name()}"
-                th:text="${status.label}"
-                th:selected="${status == device.status}">
-        </option>
-    </select>
-
-    <button type="submit">确认修改</button>
+                    <form th:action="@{/admin/devices/{id}/status(id=${device.id})}" method="post">
+                        <div class="form-line">
+                            <label for="status">新状态：</label>
+                            <select id="status" name="status" required>
+                                <option th:each="status : ${statuses}"
+                                        th:value="${status.name()}"
+                                        th:text="${status.label}"
+                                        th:selected="${status == device.status}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">确认修改</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
 
     <a th:href="@{/devices}">取消</a>
 </form>

@@ -25,7 +25,7 @@ public class DeviceController {
 
 
     /*
-        查询信息的端口
+        查询信息的页面
     */
     @GetMapping("/devices")
     public String deviceList(@RequestParam(required = false) String keyword,
@@ -33,8 +33,12 @@ public class DeviceController {
                              @RequestParam(required = false) Integer laboratoryId,
                              @RequestParam(required = false) DeviceStatus status,
                              Model model) {
+        keyword = keyword == null ? null : keyword.trim();
         List<Device> devices = deviceService.getDeviceList(keyword, categoryId, laboratoryId, status);
         model.addAttribute("devices", devices);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("statuses", DeviceStatus.values());
         return "devices/list";
     }
 

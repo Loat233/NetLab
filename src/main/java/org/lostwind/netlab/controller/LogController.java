@@ -97,10 +97,4 @@ public class LogController {
                     .body(Map.of("success", false, "message", "验证码发送失败，请稍后重试"));
         }
     }
-
-
-    @RequestMapping({"/", "/index"})
-    public String indexPage() {
-        return "index";
-    }
 }

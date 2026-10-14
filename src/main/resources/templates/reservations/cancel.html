@@ -2,30 +2,70 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>取消预约</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>取消预约 - NetLab</title>
+  <link rel="stylesheet" th:href="@{/component/pear/css/pear.css}">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #f4f7fb; color: #263445; font-family: "Microsoft YaHei", Arial, sans-serif; }
+    .page-shell { max-width: 900px; margin: 0 auto; padding: 34px 20px 56px; }
+    .back-link { display: inline-block; margin-bottom: 18px; color: #607080; text-decoration: none; }
+    .back-link:hover { color: #16baaa; }
+    .card { background: #fff; border: 1px solid #e8edf3; border-radius: 14px; box-shadow: 0 10px 30px rgba(31,45,61,.07); overflow: hidden; }
+    .hero { padding: 30px; background: linear-gradient(135deg, #effdfa, #f7fbff); border-bottom: 1px solid #e8edf3; }
+    .hero h1 { margin: 0 0 10px; font-size: 28px; }
+    .reserve-code { color: #728091; font-family: Consolas, monospace; }
+    .content-wrap { padding: 30px; }
+    .form-item { margin-bottom:24px; }
+    .form-item label {
+      display:block;
+      margin-bottom:8px;
+      color:#8a94a3;
+      font-size:14px;
+    }
+    textarea {
+      width:100%;
+      border:1px solid #d8dee7;
+      border-radius:8px;
+      padding:14px;
+      font-size:15px;
+      min-height:140px;
+      resize: vertical;
+    }
+    .actions { display: flex; justify-content: flex-end; gap: 12px; padding: 0 30px 28px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-width: 112px; height: 42px; padding: 0 18px; border: 1px solid #d8dee7; border-radius: 8px; color: #4d5968; background: #fff; text-decoration: none; cursor:pointer; font-size:15px; }
+    .button.primary { border-color: #16baaa; background: #16baaa; color: #fff; }
+    .button:hover { opacity:0.9; }
+  </style>
 </head>
 <body>
-<h2>取消预约</h2>
+<main class="page-shell">
+  <a class="back-link" th:href="@{/my/reservations}">← 返回我的预约</a >
 
-<p>
-  预约编号：
-  <span th:text="${reservation.reservationCode}"></span>
-</p>
+  <section class="card">
+    <div class="hero">
+      <h1>取消预约</h1>
+      <div class="reserve-code" th:text="|预约编号:${reservation.reservationCode}|">预约编号：</div>
+    </div>
 
-<form th:action="@{/my/reservations/{id}/cancel(id=${reservation.id})}"
-      method="post">
+    <div class="content-wrap">
+      <form th:action="@{/my/reservations/{id}/cancel(id=${reservation.id})}" method="post">
+        <div class="form-item">
+          <label for="reason">取消原因</label>
+          <textarea id="reason"
+                    name="reason"
+                    maxlength="500"
+                    placeholder="请填写取消原因"
+                    required></textarea>
+        </div>
 
-  <label for="reason">取消原因</label>
-
-  <textarea id="reason"
-            name="reason"
-            maxlength="500"
-            placeholder="请填写取消原因"
-            required></textarea>
-
-  <button type="submit">确认取消</button>
-
-  <a th:href="@{/my/reservations}">返回列表</a>
-</form>
+        <div class="actions">
+          <a class="button" th:href="@{/my/reservations}">返回列表</a >
+          <button class="button primary" type="submit">确认取消</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
 </body>
 </html>

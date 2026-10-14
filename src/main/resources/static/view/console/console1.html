@@ -8,13 +8,23 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 		<link rel="stylesheet" href="../../../component/pear/css/pear.css" />
 		<link rel="stylesheet" href="../../admin/css/other/console1.css" />
+		<style>
+			.comment-form { display: flex; gap: 10px; align-items: flex-end; padding: 5px 10px 15px; }
+			.comment-form-field { flex: 1; }
+			.comment-form .layui-textarea { min-height: 72px; resize: vertical; }
+			.comment-body { flex: 1; min-width: 0; }
+			.comment-author { font-weight: 600; color: #28333e; }
+			.comment-content { margin-top: 5px; white-space: pre-wrap; word-break: break-word; color: #666; }
+			.comment-actions { margin-left: 12px; }
+			.empty-comment { padding: 20px 0; text-align: center; color: #999; }
+		</style>
 	</head>
 	<body class="pear-container">
 		<div>
 			<div class="layui-row layui-col-space10">
 				<div class="layui-col-xs6 layui-col-md3">
 					<div class="layui-card top-panel">
-						<div class="layui-card-header">今日访问</div>
+						<div class="layui-card-header">预约总数</div>
 						<div class="layui-card-body">
 							<div class="layui-row layui-col-space5">
 								<div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;" id="value1">
@@ -45,7 +55,7 @@
 				</div>
 				<div class="layui-col-xs6 layui-col-md3">
 					<div class="layui-card top-panel">
-						<div class="layui-card-header">提交次数</div>
+						<div class="layui-card-header">可用设备</div>
 						<div class="layui-card-body">
 							<div class="layui-row layui-col-space5">
 								<div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;" id="value2">
@@ -83,7 +93,7 @@
 				</div>
 				<div class="layui-col-xs6 layui-col-md3">
 					<div class="layui-card top-panel">
-						<div class="layui-card-header">下载数量</div>
+						<div class="layui-card-header">借用中预约</div>
 						<div class="layui-card-body">
 							<div class="layui-row layui-col-space5">
 								<div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;" id="value3">
@@ -113,7 +123,7 @@
 				</div>
 				<div class="layui-col-xs6 layui-col-md3">
 					<div class="layui-card top-panel">
-						<div class="layui-card-header">流量统计</div>
+						<div class="layui-card-header">待处理预约</div>
 						<div class="layui-card-body">
 							<div class="layui-row layui-col-space5">
 								<div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;" id="value4">
@@ -155,74 +165,27 @@
 						</div>
 					</div>
 					<div class="layui-card">
-						<div class="layui-card-header">动态</div>
+						<div class="layui-card-header">评论区</div>
 						<div class="layui-card-body">
-							<dl class="layuiadmin-card-status">
-								<dd>
-									<div class="layui-status-img"><a href="javascript:;"><img style="width: 32px;height: 32px;border-radius: 50px;"
-											 src="../../admin/images/avatar.jpg"></a></div>
-									<div>
-										<p>七彩枫叶 在 <a lay-href="https://gitee.com/Jmysy/Pear-Admin-Layui">Pear Admin 专区</a> 回答问题</p>
-										<span>几秒前</span>
-									</div>
-								</dd>
-								<dd>
-									<div class="layui-status-img"><a href="javascript:;"><img style="width: 32px;height: 32px;border-radius: 50px;"
-											 src="../../admin/images/avatar.jpg"></a></div>
-									<div>
-										<p>简 在 <a lay-href="https://gitee.com/Jmysy/Pear-Admin-Layui">Pear Admin 专区</a> 进行了 <a lay-href="http://fly.layui.com/vipclub/list/layuiadmin/column/quiz/">提问</a></p>
-										<span>2天前</span>
-									</div>
-								</dd>
-								<dd>
-									<div class="layui-status-img"><a href="javascript:;"><img style="width: 32px;height: 32px;border-radius: 50px;"
-											 src="../../admin/images/avatar.jpg"></a></div>
-									<div>
-										<p>恒宇少年 将 <a lay-href="https://gitee.com/Jmysy/Pear-Admin-Layui">Pear Admin </a> 更新至 2.3.0 版本</p>
-										<span>7天前</span>
-									</div>
-								</dd>
-								<dd>
-									<div class="layui-status-img"><a href="javascript:;"><img style="width: 32px;height: 32px;border-radius: 50px;"
-											 src="../../admin/images/avatar.jpg"></a></div>
-									<div>
-										<p>如花 在 <a lay-href="https://gitee.com/Jmysy/Pear-Admin-Layui">Pear Admin 社区</a> 发布了 <a lay-href="http://fly.layui.com/column/suggest/">建议</a></p>
-										<span>7天前</span>
-									</div>
-								</dd>
-								<dd>
-									<div class="layui-status-img"><a href="javascript:;"><img style="width: 32px;height: 32px;border-radius: 50px;"
-											 src="../../admin/images/avatar.jpg"></a></div>
-									<div>
-										<p>就眠仪式 在 <a lay-href="https://gitee.com/Jmysy/Pear-Admin-Layui">Pear Admin 社区</a> 发布了 <a lay-href="http://fly.layui.com/column/suggest/">建议</a></p>
-										<span>8天前</span>
-									</div>
-								</dd>
-								<dd>
-									<div class="layui-status-img"><a href="javascript:;"><img style="width: 32px;height: 32px;border-radius: 50px;"
-											 src="../../admin/images/avatar.jpg"></a></div>
-									<div>
-										<p>贤心 在 <a lay-href="https://gitee.com/Jmysy/Pear-Admin-Layui">Pear Admin 专区</a> 进行了 <a lay-href="http://fly.layui.com/vipclub/list/layuiadmin/column/quiz/">提问</a></p>
-										<span>8天前</span>
-									</div>
-								</dd>
+							<form class="comment-form" action="/add-review" method="post" target="_top">
+								<div class="comment-form-field">
+									<textarea class="layui-textarea" name="content" maxlength="500" required
+											  placeholder="写下你的评论，最多500字"></textarea>
+								</div>
+								<button class="layui-btn layui-btn-normal" type="submit">发表评论</button>
+							</form>
+							<dl class="layuiadmin-card-status" id="review-list">
+								<dd class="empty-comment">暂无评论</dd>
 							</dl>
 						</div>
 					</div>
 				</div>
 				<div class="layui-col-md3">
 					<div class="layui-card">
-						<div class="layui-card-header">最近更新</div>
+						<div class="layui-card-header">可用设备预览</div>
 						<div class="layui-card-body">
-							<ul class="list">
-								<li class="list-item"><span class="title">优化代码格式</span><span class="footer">2020-06-04 11:28</span></li>
-								<li class="list-item"><span class="title">新增消息组件</span><span class="footer">2020-06-01 04:23</span></li>
-								<li class="list-item"><span class="title">移动端兼容</span><span class="footer">2020-05-22 21:38</span></li>
-								<li class="list-item"><span class="title">系统布局优化</span><span class="footer">2020-05-15 14:26</span></li>
-								<li class="list-item"><span class="title">兼容多系统菜单模式</span><span class="footer">2020-05-13 16:32</span></li>
-								<li class="list-item"><span class="title">兼容多标签页切换</span><span class="footer">2019-12-9 14:58</span></li>
-								<li class="list-item"><span class="title">扩展下拉组件</span><span class="footer">2019-12-7 9:06</span></li>
-								<li class="list-item"><span class="title">扩展卡片样式</span><span class="footer">2019-12-1 10:26</span></li>
+							<ul class="list" id="available-device-list">
+								<li class="list-item"><span class="title">暂无可用设备</span></li>
 							</ul>
 						</div>
 					</div>
@@ -252,33 +215,128 @@
 					count = layui.count,
 					echarts = layui.echarts;
 
+				var statistics = {};
+				var reviews = [];
+				var currentAccountId = null;
+				try {
+					statistics = window.parent.dashboardStatistics || {};
+					reviews = Array.isArray(window.parent.dashboardReviews) ? window.parent.dashboardReviews : [];
+					currentAccountId = Number(window.parent.currentAccountId);
+				} catch (e) {
+					statistics = {};
+					reviews = [];
+				}
+
 				count.up("value1", {
-					time: 4000,
-					num: 440.34,
-					bit: 2,
+					time: 1000,
+					num: Number(statistics.totalReservations || 0),
+					bit: 0,
 					regulator: 50
 				})
 
 				count.up("value2", {
-					time: 4000,
-					num: 236.30,
-					bit: 2,
+					time: 1000,
+					num: Number(statistics.availableDevices || 0),
+					bit: 0,
 					regulator: 50
 				})
 
 				count.up("value3", {
-					time: 4000,
-					num: 634.43,
-					bit: 2,
+					time: 1000,
+					num: Number(statistics.borrowedReservations || 0),
+					bit: 0,
 					regulator: 50
 				})
 
 				count.up("value4", {
-					time: 4000,
-					bit: 2,
-					num: 373.23,
+					time: 1000,
+					bit: 0,
+					num: Number(statistics.unsolvedReservations || 0),
 					regulator: 50
 				})
+
+				var deviceList = document.getElementById('available-device-list');
+				var devices = Array.isArray(statistics.availablePreview) ? statistics.availablePreview : [];
+				deviceList.innerHTML = '';
+
+				if (devices.length === 0) {
+					var emptyDevice = document.createElement('li');
+					emptyDevice.className = 'list-item';
+					emptyDevice.textContent = '暂无可用设备';
+					deviceList.appendChild(emptyDevice);
+				} else {
+					devices.forEach(function(device) {
+						var item = document.createElement('li');
+						item.className = 'list-item';
+						var title = document.createElement('span');
+						title.className = 'title';
+						title.textContent = device.deviceName || '未命名设备';
+						var footer = document.createElement('span');
+						footer.className = 'footer';
+						footer.textContent = device.assetCode || device.model || '可预约';
+						item.appendChild(title);
+						item.appendChild(footer);
+						deviceList.appendChild(item);
+					});
+				}
+
+				var reviewList = document.getElementById('review-list');
+				reviewList.innerHTML = '';
+
+				if (reviews.length === 0) {
+					var emptyReview = document.createElement('dd');
+					emptyReview.className = 'empty-comment';
+					emptyReview.textContent = '暂无评论';
+					reviewList.appendChild(emptyReview);
+				} else {
+					reviews.forEach(function(review) {
+						var item = document.createElement('dd');
+						var avatarBox = document.createElement('div');
+						avatarBox.className = 'layui-status-img';
+						var avatar = document.createElement('img');
+						avatar.src = '/admin/images/avatar.jpg';
+						avatar.alt = '用户头像';
+						avatar.style.cssText = 'width:32px;height:32px;border-radius:50%;';
+						avatarBox.appendChild(avatar);
+
+						var body = document.createElement('div');
+						body.className = 'comment-body';
+						var author = document.createElement('p');
+						author.className = 'comment-author';
+						author.textContent = review.username || ('用户 #' + review.accountId);
+						var content = document.createElement('p');
+						content.className = 'comment-content';
+						content.textContent = review.content || '';
+						body.appendChild(author);
+						body.appendChild(content);
+						item.appendChild(avatarBox);
+						item.appendChild(body);
+
+						if (Number(review.accountId) === currentAccountId) {
+							var deleteForm = document.createElement('form');
+							deleteForm.className = 'comment-actions';
+							deleteForm.action = '/delete-review';
+							deleteForm.method = 'post';
+							deleteForm.target = '_top';
+							deleteForm.onsubmit = function() {
+								return window.confirm('确定删除这条评论吗？');
+							};
+							var reviewId = document.createElement('input');
+							reviewId.type = 'hidden';
+							reviewId.name = 'review_id';
+							reviewId.value = review.id;
+							var deleteButton = document.createElement('button');
+							deleteButton.type = 'submit';
+							deleteButton.className = 'layui-btn layui-btn-danger layui-btn-xs';
+							deleteButton.textContent = '删除评论';
+							deleteForm.appendChild(reviewId);
+							deleteForm.appendChild(deleteButton);
+							item.appendChild(deleteForm);
+						}
+
+						reviewList.appendChild(item);
+					});
+				}
 
 				var echartsRecords = echarts.init(document.getElementById('echarts-records'), 'walden');
 

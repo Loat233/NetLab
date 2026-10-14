@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,8 @@
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
@@ -16,12 +19,69 @@
       background: #f4f7fb;
       color: #263445;
       font-family: "Microsoft YaHei", Arial, sans-serif;
+      display: flex;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    /* 侧边栏，和设备列表、预约管理完全一致 */
+    .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #f7f4fc 0%, #ede7f8 100%);
+      border: 1px solid #d9cff0;
+      border-radius: 14px;
+      box-shadow:
+              0 14px 34px rgba(124, 58, 237, .09),
+              0 4px 8px rgba(124, 58, 237, .05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo{
+      padding:20px 22px;
+      font-size:18px;
+      font-weight:bold;
+      text-align:center;
+      border-bottom:1px solid #d9cff0;
+      box-shadow: 0 3px 4px rgba(124, 58, 237, 0.06);
+    }
+    .sidebar-menu{
+      list-style:none;
+      padding:12px;
+      margin:0;
+      flex:1;
+    }
+    .sidebar-menu li{
+      margin-bottom:4px;
+    }
+    .sidebar-menu li a{
+      display:block;
+      padding:12px 14px;
+      border-radius:9px;
+      text-decoration:none;
+      color:#4d5968;
+    }
+    .sidebar-menu li a:hover{
+      background:#e3daf2;
+    }
+    .sidebar-menu li a.active{
+      background:#e9e1f6;
+      color:#6b21a8;
+    }
+    .sidebar-user{
+      padding:12px 14px 18px;
+      border-top:1px solid #d9cff0;
+    }
+    .user-info-text{
+      color:#4d5968;
+      font-size:14px;
     }
 
     .page-shell {
-      width: min(1200px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 36px 0 60px;
+      max-width: 1280px;
+      width: 100%;
+      margin: 36px 0 0 150px;
     }
 
     .back-link {
@@ -152,7 +212,15 @@
       font-size: 18px;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 900px){
+      body{
+        flex-direction:column;
+        padding:20px;
+        gap:20px;
+      }
+      .sidebar{
+        width:100%;
+      }
       .card-header {
         align-items: flex-start;
         flex-direction: column;
@@ -168,16 +236,41 @@
 </head>
 
 <body>
+<aside class="sidebar">
+  <div class="sidebar-logo">实验室管理系统</div>
+  <ul class="sidebar-menu">
+    <li>
+      <a th:href="@{/}" >控制台</a >
+    </li>
+    <li>
+      <a th:href="@{/devices}">设备管理</a >
+    </li>
+    <li>
+      <a th:href="@{/admin/reservations}">预约管理</a >
+    </li>
+    <li>
+      <a th:href="@{/admin/fault-records}" class="active">故障单管理</a >
+    </li>
+  </ul>
+  <div class="sidebar-user">
+    <div class="user-info-text">
+      <span sec:authentication="name"></span>
+      <span sec:authorize="hasRole('ADMIN')">（管理员）</span>
+      <span sec:authorize="hasRole('USER')">（普通用户）</span>
+    </div>
+  </div>
+</aside>
+
 <main class="page-shell">
   <a class="back-link" th:href="@{/devices}">
     ← 返回设备列表
-  </a>
+  </a >
 
   <section class="card">
     <header class="card-header">
       <div>
         <h1>故障单管理</h1>
-        <p>查看学生和管理员提交的所有设备故障</p>
+        <p>查看学生和管理员提交的所有设备故障</p >
       </div>
 
       <span class="count"
@@ -251,12 +344,12 @@
             <a th:if="${record.status.name() == 'PENDING'}"
                th:href="@{/admin/fault-records/{id}/maintain(id=${record.id})}">
               开始维修
-            </a>
+            </a >
 
             <a th:if="${record.status.name() == 'PROCESSING'}"
                th:href="@{/admin/fault-records/{id}/result(id=${record.id})}">
               设置维修结果
-            </a>
+            </a >
 
             <span th:if="${record.status.name() == 'RESOLVED'}">
         已处理

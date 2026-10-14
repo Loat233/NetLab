@@ -1,64 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加设备</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: #263445;
+            background: #f4f7fb;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            display: flex;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        /* 左侧侧边栏，和设备列表页面完全一致 */
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #f7f4fc 0%, #ede7f8 100%);
+            border: 1px solid #d9cff0;
+            border-radius: 14px;
+            box-shadow:
+                    0 14px 34px rgba(124, 58, 237, .09),
+                    0 4px 8px rgba(124, 58, 237, .05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-logo{
+            padding:20px 22px;
+            font-size:18px;
+            font-weight:bold;
+            text-align:center;
+            border-bottom:1px solid #d9cff0;
+            box-shadow: 0 3px 4px rgba(124, 58, 237, 0.06);
+        }
+        .sidebar-menu{
+            list-style:none;
+            padding:12px;
+            margin:0;
+            flex:1;
+        }
+        .sidebar-menu li{
+            margin-bottom:4px;
+        }
+        .sidebar-menu li a{
+            display:block;
+            padding:12px 14px;
+            border-radius:9px;
+            text-decoration:none;
+            color:#4d5968;
+        }
+        .sidebar-menu li a:hover{
+            background:#e3daf2;
+        }
+        .sidebar-menu li a.active{
+            background:#e9e1f6;
+            color:#6b21a8;
+        }
+        .sidebar-user{
+            padding:12px 14px 18px;
+            border-top:1px solid #d9cff0;
+        }
+        .user-info-text{
+            color:#4d5968;
+            font-size:14px;
+        }
+
+        .page-shell {
+            max-width: 1280px;
+            width: 100%;
+            margin: 36px 0 0 150px;
+        }
+
+        .page-head {
+            margin-bottom: 22px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+        .page-head-text h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+        .page-head-text p {
+            margin: 0;
+            color: #667182;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            height: 38px;
+            padding: 0 15px;
+            border-radius: 7px;
+            text-decoration: none;
+            cursor: pointer;
+            border:none;
+        }
+        .button.green{
+            color:#fff;
+            background:#0f766e;
+        }
+        .button.green:hover{
+            background:#0b5d58;
+        }
+        .button.gray{
+            color:#333;
+            background:#ffffff;
+            border:1px solid #d8dee7;
+        }
+
+        .card {
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 14px;
+            width: 100%;
+        }
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #e8edf3;
+        }
+        .card-head h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .card-body{
+            padding:24px 22px;
+        }
+
+        /*表单样式*/
+        .form-item {
+            margin-bottom: 20px;
+        }
+        .form-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color:#4d5968;
+        }
+        .form-item input,
+        .form-item select,
+        .form-item textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border:1px solid #d8dee7;
+            border-radius:7px;
+            font-size:14px;
+            color:#263445;
+        }
+        .form-item input:focus,
+        .form-item select:focus,
+        .form-item textarea:focus {
+            outline:none;
+            border-color:#0f766e;
+        }
+        .form-item textarea {
+            min-height:100px;
+            resize:vertical;
+        }
+        .form-buttons {
+            display:flex;
+            gap:12px;
+            margin-top:10px;
+        }
+
+        @media (max-width:900px){
+            body{
+                flex-direction:column;
+                padding:20px;
+                gap:20px;
+            }
+            .sidebar{
+                width:100%;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <form th:action="@{/admin/devices/add}"
-          th:object="${device}"
-          method="post">
-
-        <div>
-            <label>资产编号</label>
-            <input type="text"
-                   th:field="*{assetCode}"
-                   required>
+<aside class="sidebar">
+    <div class="sidebar-logo">实验室管理系统</div>
+    <ul class="sidebar-menu">
+        <li>
+            <a th:href="@{/}" >控制台</a >
+        </li>
+        <li>
+            <a th:href="@{/devices}" class="active">设备管理</a >
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/reservations}">预约管理</a >
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/fault-records}">故障单管理</a >
+        </li>
+    </ul>
+    <div class="sidebar-user">
+        <div class="user-info-text">
+            <span sec:authentication="name"></span>
+            <span sec:authorize="hasRole('ADMIN')">（管理员）</span>
+            <span sec:authorize="hasRole('USER')">（普通用户）</span>
         </div>
+    </div>
+</aside>
 
-        <div>
-            <label>设备名称</label>
-            <input type="text"
-                   th:field="*{deviceName}"
-                   required>
+<main class="page-shell">
+    <header class="page-head">
+        <div class="page-head-text">
+            <h1>添加设备</h1>
+            <p>录入新的实验室设备信息</p >
         </div>
+        <a class="button gray" th:href="@{/devices}">返回设备列表</a >
+    </header>
 
-        <div>
-            <label>设备分类</label>
-            <select th:field="*{categoryId}" required>
-                <option value="">请选择分类</option>
-
-                <option th:each="category : ${categories}"
-                        th:value="${category.id}"
-                        th:text="${category.categoryName}">
-                </option>
-            </select>
+    <section class="card">
+        <div class="card-head">
+            <h2>设备表单</h2>
         </div>
+        <div class="card-body">
+            <form th:action="@{/admin/devices/add}"
+                  th:object="${device}"
+                  method="post">
 
-        <div>
-            <label>所属实验室</label>
-            <select th:field="*{laboratoryId}" required>
-                <option value="">请选择实验室</option>
+                <div class="form-item">
+                    <label>资产编号</label>
+                    <input type="text"
+                           th:field="*{assetCode}"
+                           required>
+                </div>
 
-                <option th:each="laboratory : ${laboratories}"
-                        th:value="${laboratory.id}"
-                        th:text="${laboratory.labName}">
-                </option>
-            </select>
+                <div class="form-item">
+                    <label>设备名称</label>
+                    <input type="text"
+                           th:field="*{deviceName}"
+                           required>
+                </div>
+
+                <div class="form-item">
+                    <label>设备分类</label>
+                    <select th:field="*{categoryId}" required>
+                        <option value="">请选择分类</option>
+                        <option th:each="category : ${categories}"
+                                th:value="${category.id}"
+                                th:text="${category.categoryName}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-item">
+                    <label>所属实验室</label>
+                    <select th:field="*{laboratoryId}" required>
+                        <option value="">请选择实验室</option>
+                        <option th:each="laboratory : ${laboratories}"
+                                th:value="${laboratory.id}"
+                                th:text="${laboratory.labName}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-item">
+                    <label>设备型号</label>
+                    <input type="text"
+                           th:field="*{model}">
+                </div>
+
+                <div class="form-item">
+                    <label>设备描述</label>
+                    <textarea th:field="*{description}"></textarea>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="button green">添加设备</button>
+                </div>
+            </form>
         </div>
-
-        <div>
-            <label>设备型号</label>
-            <input type="text"
-                   th:field="*{model}">
-        </div>
-
-        <div>
-            <label>设备描述</label>
-            <textarea th:field="*{description}"></textarea>
-        </div>
-
-        <button type="submit">添加设备</button>
-    </form>
+    </section>
+</main>
 </body>
 </html>
