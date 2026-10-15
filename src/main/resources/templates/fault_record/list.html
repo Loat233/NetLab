@@ -24,7 +24,6 @@
       gap: 24px;
     }
 
-    /* 侧边栏，和设备列表、预约管理完全一致 */
     .sidebar {
       width: 200px;
       flex-shrink: 0;
@@ -79,9 +78,11 @@
     }
 
     .page-shell {
-      max-width: 1280px;
-      width: 100%;
-      margin: 36px 0 0 150px;
+      flex: 1;
+      min-width: 0;
+      width: auto;
+      max-width: none;
+      margin: 36px 0;
     }
 
     .back-link {
@@ -96,6 +97,7 @@
     }
 
     .card {
+      min-width: 0;
       overflow: hidden;
       background: #fff;
       border: 1px solid #e8edf3;
@@ -134,6 +136,8 @@
     }
 
     .table-wrapper {
+      width: 100%;
+      max-width: 100%;
       overflow-x: auto;
       padding: 24px 30px 30px;
     }
@@ -220,6 +224,10 @@
       }
       .sidebar{
         width:100%;
+      }
+      .page-shell {
+        width: 100%;
+        margin: 0;
       }
       .card-header {
         align-items: flex-start;

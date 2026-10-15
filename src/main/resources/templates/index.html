@@ -1,109 +1,436 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-		<title>NetLab 网络实验室设备管理平台</title>
-		<!-- 依 赖 样 式 -->
-		<link rel="stylesheet" href="/component/pear/css/pear.css" />
-		<!-- 加 载 样 式-->
-		<link rel="stylesheet" href="/admin/css/load.css" />
-		<!-- 布 局 样 式 -->
-		<link rel="stylesheet" href="/admin/css/admin.css" />
-		<!-- 主 题 更 换 -->
-		<style id="pearadmin-bg-color"></style>
-		<!-- 头 部 结 束 -->
-	</head>
-	<!-- 结 构 代 码 -->
-	<body class="layui-layout-body pear-admin">
-		<!-- 布 局 框 架 -->
-		<div class="layui-layout layui-layout-admin">
-			<div class="layui-header">
-				<!-- 顶 部 左 侧 功 能 -->
-				<ul class="layui-nav layui-layout-left">
-					<li class="collaspe layui-nav-item"><a href="#" class="layui-icon layui-icon-shrink-right"></a></li>
-					<li class="refresh layui-nav-item"><a href="#" class="layui-icon layui-icon-refresh-1" loading=600></a></li>
-				</ul>
-				<!-- 顶 部 右 侧 菜 单 -->
-				<div id="control" class="layui-layout-control"></div>
-				<ul class="layui-nav layui-layout-right">
-					<li class="layui-nav-item layui-hide-xs"><a href="#" class="fullScreen layui-icon layui-icon-screen-full"></a></li>
-					<li class="layui-nav-item layui-hide-xs"><a href="http://www.pearadmin.com" class="layui-icon layui-icon-website"></a></li>
-					<li class="layui-nav-item">
-						<!-- 头 像 -->
-						<a href="javascript:;">
-							<img src="" class="layui-nav-img">
-							就眠仪式
-						</a>
-						<!-- 功 能 菜 单 -->
-						<dl class="layui-nav-child">
-							<dd><a user-menu-url="view/system/person.html" user-menu-id="5555" user-menu-title="基本资料">基本资料</a></dd>
-							<dd><a href="/doLogout">注销登录</a></dd>
-						</dl>
-					</li>
-					<!-- 主 题 配 置 -->
-					<li class="layui-nav-item setting"><a href="#" class="layui-icon layui-icon-more-vertical"></a></li>
-				</ul>
-			</div>
-			<!-- 侧 边 区 域 -->
-			<div class="layui-side layui-bg-black">
-				<!-- 顶 部 图 标 -->
-				<div class="layui-logo">
-					<!-- 图 表 -->
-					<img class="logo"></img>
-					<!-- 标 题 -->
-					<span class="title"></span>
-				</div>
-				<!-- 侧 边 菜 单 -->
-				<div class="layui-side-scroll">
-					<div id="sideMenu"></div>
-				</div>
-			</div>
-			<!-- 视 图 页 面 -->
-			<div class="layui-body">
-				<!-- 内 容 页 面 -->
-				<div id="content"></div>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>NetLab 网络实验室设备管理平台</title>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			color: #263445;
+			background: #f4f7fb;
+			font-family: "Microsoft YaHei", Arial, sans-serif;
+			display: flex;
+			padding: 24px;
+			gap: 24px;
+		}
+
+		/* 侧边栏 */
+		.sidebar {
+			width: 200px;
+			flex-shrink: 0;
+			background: linear-gradient(180deg, #f7f4fc 0%, #ede7f8 100%);
+			border: 1px solid #d9cff0;
+			border-radius: 14px;
+			box-shadow:
+					0 14px 34px rgba(124, 58, 237, .09),
+					0 4px 8px rgba(124, 58, 237, .05);
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.sidebar-logo {
+			padding: 20px 22px;
+			font-size: 18px;
+			font-weight: bold;
+			text-align: center;
+			border-bottom: 1px solid #d9cff0;
+		}
+
+		.sidebar-menu {
+			list-style: none;
+			padding: 12px;
+			margin: 0;
+			flex: 1;
+		}
+
+		.sidebar-menu li {
+			margin-bottom: 4px;
+		}
+
+		.sidebar-menu li a {
+			display: block;
+			padding: 12px 14px;
+			border-radius: 9px;
+			text-decoration: none;
+			color: #4d5968;
+		}
+
+		.sidebar-menu li a:hover {
+			background: #e3daf2;
+		}
+
+		.sidebar-menu li a.active {
+			background: #e9e1f6;
+			color: #6b21a8;
+		}
+
+		.sidebar-user {
+			padding: 12px 14px 18px;
+			border-top: 1px solid #d9cff0;
+		}
+
+		.user-info-text {
+			color: #4d5968;
+			font-size: 14px;
+		}
+
+		.page-shell {
+			flex: 1;
+			min-width: 0;
+			padding-top: 40px;
+		}
+
+		.page-head {
+			margin-bottom: 28px;
+		}
+
+		.page-head-text h1 {
+			margin: 0 0 10px;
+			font-size: 34px;
+			font-weight: bold;
+			color: #263445;
+		}
+
+		.page-head-text p {
+			margin: 0;
+			font-size: 17px;
+			color: #667182;
+		}
+
+		.button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 90px;
+			height: 38px;
+			padding: 0 15px;
+			border-radius: 7px;
+			text-decoration: none;
+			cursor: pointer;
+			border: none;
+		}
+
+		.button.gray {
+			color: #333;
+			background: #ffffff;
+			border: 1px solid #d8dee7;
+		}
+
+		/* 顶部统计卡片【4卡片平分一行 + 右侧图标预留】 */
+		.stat-row {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 16px;
+			margin-bottom: 24px;
+		}
+
+		.stat-card {
+			background: #ffffff;
+			border: 1px solid #e8edf3;
+			border-radius: 14px;
+			padding: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.stat-card .num {
+			font-size: 28px;
+			font-weight: bold;
+			color: #263445;
+		}
+
+		.stat-card .label {
+			color: #667182;
+			font-size: 14px;
+		}
+		/* 统计卡片图标样式 */
+		.stat-icon{
+			width:48px;
+			height:48px;
+			object-fit: contain;
+		}
+
+		/* 主内容左右布局 */
+		.main-row {
+			display: grid;
+			grid-template-columns: 72% 26%;
+			gap: 2%;
+			align-items: start;
+		}
+
+		.card {
+			overflow: hidden;
+			background: #ffffff;
+			border: 1px solid #e8edf3;
+			border-radius: 14px;
+			width: 100%;
+		}
+
+		/* 卡片头部：深绿色背景 白色文字 */
+		.card-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 20px 24px;
+			background-color: #0f766e;
+			color: #ffffff;
+		}
+
+		.card-head h2 {
+			margin: 0;
+			font-size: 19px;
+			color: #ffffff;
+		}
+
+		.card-body {
+			padding: 24px;
+		}
+
+
+		.avatar-img{
+			width:28px;
+			height:28px;
+			border-radius: 50%;
+			margin-right: 8px;
+		}
+		.comment-author{
+			display: flex;
+			align-items: center;
+		}
+		.email-text{
+			font-weight: bold;
+			font-size:15px;
+			color:#263445;
+		}
+		.comment-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 8px;
+		}
+		.del-btn{
+			color: #cf1322;
+			font-size:13px;
+			text-decoration: none;
+		}
+		.delete-review-form {
+			margin: 0;
+			flex-shrink: 0;
+		}
+		.delete-review-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 32px;
+			height: 32px;
+			padding: 6px;
+			border: 0;
+			border-radius: 6px;
+			background: transparent;
+			cursor: pointer;
+		}
+		.delete-review-button:hover {
+			background: #fff1f0;
+		}
+		.delete-review-icon {
+			display: block;
+			width: 20px;
+			height: 20px;
+			object-fit: contain;
+		}
+		.comment-item {
+			padding: 16px 0;
+			border-bottom: 1px solid #f0f2f5;
+		}
+		.comment-item:last-child{
+			border-bottom:none;
+		}
+		.comment-content{
+			font-size:15px;
+			color:#4d5968;
+			line-height:1.7;
+		}
+
+
+
+		.device-preview-item {
+			padding: 14px 0;
+			border-bottom: 1px solid #f0f2f5;
+			display:flex;
+			justify-content: space-between;
+		}
+
+		.device-preview-item:last-child {
+			border-bottom: none;
+		}
+
+		.device-preview-item .dev-name {
+			font-size: 17px;
+			color: #263445;
+			font-weight: normal;
+		}
+		.device-preview-item .dev-code {
+			font-size:17px;
+			color:#263445;
+		}
+
+		@media (max-width: 1100px) {
+			.stat-row {
+				grid-template-columns: repeat(2, 1fr);
+			}
+
+			.main-row {
+				grid-template-columns: 1fr;
+			}
+
+			body {
+				flex-direction: column;
+			}
+
+			.sidebar {
+				width: 100%;
+			}
+		}
+	</style>
+</head>
+
+<body>
+<aside class="sidebar">
+	<div class="sidebar-logo">实验室管理系统</div>
+	<ul class="sidebar-menu">
+		<li>
+			<a th:href="@{/}" class="active">控制台</a >
+		</li>
+		<li>
+			<a th:href="@{/devices}">设备管理</a >
+		</li>
+		<li sec:authorize="hasRole('USER')">
+			<a th:href="@{/my/reservations}">我的预约</a >
+		</li>
+		<li sec:authorize="hasRole('USER')">
+			<a th:href="@{/my/fault-records}">我的故障单</a >
+		</li>
+		<li sec:authorize="hasRole('ADMIN')">
+			<a th:href="@{/admin/reservations}">预约管理</a >
+		</li>
+		<li sec:authorize="hasRole('ADMIN')">
+			<a th:href="@{/admin/fault-records}">故障单管理</a >
+		</li>
+	</ul>
+	<div class="sidebar-user">
+		<div class="user-info-text">
+			<span sec:authentication="name"></span>
+			<span sec:authorize="hasRole('ADMIN')">（管理员）</span>
+			<span sec:authorize="hasRole('USER')">（普通用户）</span>
+			<div style="margin-top:10px;">
+				<a class="button gray" th:href="@{/doLogout}" style="height:32px;font-size:13px;text-decoration:none;">退出登录</a >
 			</div>
 		</div>
-		<!-- 遮 盖 层 -->
-		<div class="pear-cover"></div>
-		<!-- 加 载 动 画-->
-		<div class="loader-main">
-			<div class="loader"></div>
+	</div>
+</aside>
+
+<main class="page-shell">
+	<header class="page-head">
+		<div class="page-head-text">
+			<h1>控制台</h1>
+			<p>欢迎使用 NetLab 网络实验室设备管理平台</p >
 		</div>
-		<!-- 依 赖 脚 本 -->
-		<script src="/component/layui/layui.js"></script>
-		<script src="/component/pear/pear.js"></script>
-		<script th:inline="javascript">
-			window.dashboardStatistics = {
-				totalReservations: /*[[${statistics.totalReservations}]]*/ 0,
-				availableDevices: /*[[${statistics.availableDevices}]]*/ 0,
-				borrowedReservations: /*[[${statistics.borrowedReservations}]]*/ 0,
-				unsolvedReservations: /*[[${statistics.unsolvedReservations}]]*/ 0,
-				availablePreview: /*[[${statistics.availablePreview}]]*/ []
-			};
-			window.dashboardReviews = /*[[${reviews}]]*/ [];
-			window.currentAccountId = /*[[${currentAccountId}]]*/ null;
-		</script>
-		<!-- 框 架 初 始 化 -->
-		<script>
-			layui.use(['admin','jquery',"convert"], function() {
-				var admin = layui.admin,
-					$ = layui.jquery,
-					convert = layui.convert;
-				
-				var image = new Image();
-				image.src = "admin/images/avatar.jpg";
-				image.onload = function(){
-					$(".layui-nav-img").attr("src", convert.imageToBase64(image));
-				}
-			
-				// 重新设置配置文件读取路径，默认为同级目录下的 pear.config.json
-				admin.setConfigPath("config/pear.config.yml");
-				
-				// 进行框架初始化
-				admin.render();
-			})
-		</script>
-	</body>
+	</header>
+
+	<!-- 顶部4个统计卡片，右侧预留图片位置 -->
+	<div class="stat-row">
+		<div class="stat-card">
+			<div>
+				<div class="num" th:text="${statistics.totalReservations}">0</div>
+				<div class="label">预约总数</div>
+			</div>
+			<img class="stat-icon" th:src="@{/images/1.png}" alt="预约图标">
+		</div>
+		<div class="stat-card">
+			<div>
+				<div class="num" th:text="${statistics.availableDevices}">0</div>
+				<div class="label">可用设备</div>
+			</div>
+			<img class="stat-icon" th:src="@{/images/2.png}" alt="设备图标">
+		</div>
+		<div class="stat-card">
+			<div>
+				<div class="num" th:text="${statistics.borrowedReservations}">0</div>
+				<div class="label">借用中预约</div>
+			</div>
+			<img class="stat-icon" th:src="@{/images/3.png}" alt="借用图标">
+		</div>
+		<div class="stat-card">
+			<div>
+				<div class="num" th:text="${statistics.unsolvedReservations}">0</div>
+				<div class="label">待处理预约</div>
+			</div>
+			<img class="stat-icon" th:src="@{/images/4.png}" alt="待处理图标">
+		</div>
+	</div>
+
+	<!-- 主区域：左侧评论区，右侧可用设备预览 -->
+	<div class="main-row">
+		<!-- 评论区 -->
+		<div class="card">
+			<div class="card-head">
+				<h2>评论区</h2>
+			</div>
+			<div class="card-body">
+				<div th:each="review : ${reviews}" class="comment-item">
+					<div class="comment-header">
+						<div class="comment-author">
+							<img th:src="@{/images/tx2.gif}" alt="用户头像" class="avatar-img">
+							<span class="email-text" th:text="${review.username}"></span>
+						</div>
+						<form class="delete-review-form"
+							  th:if="${review.accountId == currentAccountId}"
+							  th:action="@{/delete-review}"
+							  method="post"
+							  onsubmit="return confirm('确定删除这条评论吗？');">
+							<input type="hidden" name="review_id" th:value="${review.id}">
+							<button class="delete-review-button" type="submit" title="删除评论">
+								<img class="delete-review-icon" th:src="@{/images/ashbin.png}" alt="删除评论">
+							</button>
+						</form>
+
+					</div>
+					<div class="comment-content" th:text="${review.content}"></div>
+				</div>
+
+				<!-- 发表评论表单 -->
+				<form class="comment-input-area" th:action="@{/add-review}" method="post" style="margin-top:24px;display:flex;gap:12px;">
+					<textarea name="content" maxlength="500" placeholder="写下你的评论，最多500字" style="flex:1;padding:12px 14px;border:1px solid #d8dee7;border-radius:8px;resize:none;font-size:14px;"></textarea>
+					<button type="submit" style="padding:0 18px;background:#1677ff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">发送</button>
+				</form>
+			</div>
+		</div>
+
+		<!-- 右侧可用设备预览：名称取消加粗，资产编号右对齐 -->
+		<div class="card">
+			<div class="card-head">
+				<h2>可用设备预览</h2>
+			</div>
+			<div class="card-body">
+				<div th:each="dev : ${statistics.availablePreview}" class="device-preview-item">
+					<span class="dev-name" th:text="${dev.deviceName}"></span>
+					<span class="dev-code" th:text="${dev.assetCode}"></span>
+				</div>
+				<p th:if="${#lists.isEmpty(statistics.availablePreview)}" style="color:#8895a7;">暂无可用设备</p >
+			</div>
+		</div>
+	</div>
+</main>
+</body>
 </html>
