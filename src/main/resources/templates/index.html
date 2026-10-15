@@ -177,6 +177,41 @@
 			width: 100%;
 		}
 
+		.right-column {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+		}
+
+		.page-links {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px;
+		}
+
+		.page-link-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			height: 44px;
+			padding: 0 14px;
+			border: 1px solid #d9cff0;
+			border-radius: 10px;
+			background: #ffffff;
+			color: #5b4b72;
+			font-size: 14px;
+			font-weight: 600;
+			text-decoration: none;
+			box-shadow: 0 5px 14px rgba(124, 58, 237, .06);
+			transition: background-color .2s ease, border-color .2s ease, transform .2s ease;
+		}
+
+		.page-link-button:hover {
+			background: #f4effb;
+			border-color: #bba8df;
+			transform: translateY(-1px);
+		}
+
 		/* 卡片头部：深绿色背景 白色文字 */
 		.card-head {
 			display: flex;
@@ -315,7 +350,7 @@
 		<li>
 			<a th:href="@{/devices}">设备管理</a >
 		</li>
-		<li sec:authorize="hasRole('USER')">
+		<li>
 			<a th:href="@{/my/reservations}">我的预约</a >
 		</li>
 		<li sec:authorize="hasRole('USER')">
@@ -417,18 +452,28 @@
 			</div>
 		</div>
 
-		<!-- 右侧可用设备预览：名称取消加粗，资产编号右对齐 -->
-		<div class="card">
-			<div class="card-head">
-				<h2>可用设备预览</h2>
-			</div>
-			<div class="card-body">
-				<div th:each="dev : ${statistics.availablePreview}" class="device-preview-item">
-					<span class="dev-name" th:text="${dev.deviceName}"></span>
-					<span class="dev-code" th:text="${dev.assetCode}"></span>
+		<div class="right-column">
+			<!-- 右侧可用设备预览：名称取消加粗，资产编号右对齐 -->
+			<div class="card">
+				<div class="card-head">
+					<h2>可用设备预览</h2>
 				</div>
-				<p th:if="${#lists.isEmpty(statistics.availablePreview)}" style="color:#8895a7;">暂无可用设备</p >
+				<div class="card-body">
+					<div th:each="dev : ${statistics.availablePreview}" class="device-preview-item">
+						<span class="dev-name" th:text="${dev.deviceName}"></span>
+						<span class="dev-code" th:text="${dev.assetCode}"></span>
+					</div>
+					<p th:if="${#lists.isEmpty(statistics.availablePreview)}" style="color:#8895a7;">暂无可用设备</p >
+				</div>
 			</div>
+
+			<nav class="page-links" aria-label="相关链接">
+				<a class="page-link-button" th:href="@{/about-us}">关于我们</a>
+				<a class="page-link-button"
+				   href="https://github.com/Loat233/NetLab/tree/main"
+				   target="_blank"
+				   rel="noopener noreferrer">项目文档</a>
+			</nav>
 		</div>
 	</div>
 </main>

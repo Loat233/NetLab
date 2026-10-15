@@ -62,4 +62,9 @@ public class DashboardController {
         }
         return "redirect:/index";
     }
+
+    @GetMapping("/about-us")
+    public String aboutUsPage() {
+        return "about-us";
+    }
 }

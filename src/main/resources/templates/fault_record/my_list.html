@@ -260,7 +260,7 @@
     <li>
       <a th:href="@{/devices}">设备管理</a >
     </li>
-    <li sec:authorize="hasRole('USER')">
+    <li>
       <a th:href="@{/my/reservations}">我的预约</a >
     </li>
     <li sec:authorize="hasRole('USER')">

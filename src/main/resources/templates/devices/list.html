@@ -282,8 +282,7 @@
         <li>
             <a th:href="@{/devices}" class="active">设备管理</a >
         </li>
-        <!-- 用户专属：我的预约 -->
-        <li sec:authorize="hasRole('USER')">
+        <li>
             <a th:href="@{/my/reservations}">我的预约</a >
         </li>
         <li sec:authorize="hasRole('USER')">

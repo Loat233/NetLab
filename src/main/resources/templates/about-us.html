@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于我们 - NetLab</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 24px;
+            color: #263445;
+            background: #f4f7fb;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        .button {
+            min-width: 90px;
+            height: 38px;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: inherit;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+        }
+
+        .button.primary {
+            color: #ffffff;
+            background: #0f766e;
+        }
+
+        .button.primary:hover {
+            background: #0b625c;
+        }
+
+        .button.light {
+            color: #4d5968;
+            background: #ffffff;
+            border-color: #d8dee7;
+        }
+
+        .button.light:hover {
+            background: #f7f4fc;
+            border-color: #c6b8e2;
+        }
+
+        .button.small {
+            height: 32px;
+            min-width: 0;
+            padding: 0 14px;
+            font-size: 13px;
+        }
+
+        .page-shell {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto;
+            min-width: 0;
+        }
+
+        .page-head {
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .page-head h1 {
+            margin-bottom: 10px;
+            color: #263445;
+            font-size: 34px;
+        }
+
+        .page-head p {
+            color: #667182;
+            font-size: 17px;
+        }
+
+        .hero-card,
+        .content-card {
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #e8edf3;
+            border-radius: 14px;
+        }
+
+        .hero-card {
+            position: relative;
+            padding: 42px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5fbfa 58%, #f1ebfa 100%);
+        }
+
+        .hero-card::after {
+            position: absolute;
+            right: -70px;
+            top: -95px;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(124, 58, 237, .08);
+            content: "";
+        }
+
+        .hero-mark {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            color: #ffffff;
+            background: linear-gradient(145deg, #0f766e, #115e59);
+            box-shadow: 0 12px 24px rgba(15, 118, 110, .2);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .hero-card h2 {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin-bottom: 14px;
+            font-size: 30px;
+            line-height: 1.35;
+        }
+
+        .hero-card p {
+            position: relative;
+            z-index: 1;
+            max-width: 780px;
+            color: #667182;
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .hero-actions {
+            position: relative;
+            z-index: 1;
+            margin-top: 26px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .feature-grid {
+            margin: 22px 0;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .feature-item {
+            padding: 22px;
+            background: #ffffff;
+            border: 1px solid #e8edf3;
+            border-radius: 14px;
+        }
+
+        .feature-number {
+            width: 38px;
+            height: 38px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            color: #0f766e;
+            background: #e9f7f5;
+            font-weight: 700;
+        }
+
+        .feature-item h3 {
+            margin-bottom: 8px;
+            font-size: 17px;
+        }
+
+        .feature-item p {
+            color: #667182;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1.15fr .85fr;
+            gap: 22px;
+        }
+
+        .card-head {
+            padding: 18px 22px;
+            color: #ffffff;
+            background: #0f766e;
+        }
+
+        .card-head h2 {
+            font-size: 19px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .about-copy {
+            color: #4d5968;
+            font-size: 15px;
+            line-height: 1.9;
+        }
+
+        .about-copy + .about-copy {
+            margin-top: 14px;
+        }
+
+        .tech-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tech-tag {
+            padding: 8px 12px;
+            border: 1px solid #d9cff0;
+            border-radius: 999px;
+            color: #5b4b72;
+            background: #f7f4fc;
+            font-size: 13px;
+        }
+
+        .project-note {
+            margin-top: 20px;
+            padding: 16px;
+            border-left: 4px solid #0f766e;
+            border-radius: 8px;
+            color: #4d5968;
+            background: #f2faf8;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .page-footer {
+            padding: 26px 0 8px;
+            color: #8895a7;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 1100px) {
+            .feature-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 14px;
+            }
+
+            .page-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page-head h1 {
+                font-size: 28px;
+            }
+
+            .hero-card {
+                padding: 28px 22px;
+            }
+
+            .hero-card h2 {
+                font-size: 24px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell">
+    <header class="page-head">
+        <div>
+            <h1>关于我们</h1>
+            <p>了解 NetLab 的项目定位、核心能力与技术实现</p>
+        </div>
+        <a class="button light" th:href="@{/}">返回控制台</a>
+    </header>
+
+    <section class="hero-card">
+        <div class="hero-mark">NL</div>
+        <h2>让网络实验室的设备流转更清晰、更可靠</h2>
+        <p>
+            NetLab 是面向高校网络实验室的设备预约与流转管理平台，围绕学生预约、管理员审核、
+            设备借出、申请归还、逾期追踪和故障维修构建完整业务流程，帮助实验室减少重复预约，
+            提升设备管理效率。
+        </p>
+        <div class="hero-actions">
+            <a class="button primary"
+               href="https://github.com/Loat233/NetLab/tree/main"
+               target="_blank"
+               rel="noopener noreferrer">查看项目文档</a>
+        </div>
+    </section>
+
+    <section class="feature-grid" aria-label="项目特点">
+        <article class="feature-item">
+            <div class="feature-number">01</div>
+            <h3>预约冲突控制</h3>
+            <p>检查同一设备的预约时间区间，并通过事务和数据库锁避免并发重复审批。</p>
+        </article>
+        <article class="feature-item">
+            <div class="feature-number">02</div>
+            <h3>完整借还流程</h3>
+            <p>覆盖预约申请、审核、确认借出、申请归还和管理员确认归还等关键节点。</p>
+        </article>
+        <article class="feature-item">
+            <div class="feature-number">03</div>
+            <h3>逾期自动追踪</h3>
+            <p>定时识别超过归还期限的借用记录，并以学生申请归还时间确定最终结果。</p>
+        </article>
+        <article class="feature-item">
+            <div class="feature-number">04</div>
+            <h3>故障维修闭环</h3>
+            <p>支持故障上报、处理与维修完成，设备状态会随业务进度同步流转。</p>
+        </article>
+    </section>
+
+    <section class="detail-grid">
+        <article class="content-card">
+            <div class="card-head">
+                <h2>关于 NetLab</h2>
+            </div>
+            <div class="card-body">
+                <p class="about-copy">
+                    项目以真实实验室设备管理场景为基础，将设备、预约、借用和故障记录进行关联，
+                    让学生可以快速了解设备状态并提交预约，让管理员能够集中处理审核和设备流转。
+                </p>
+                <p class="about-copy">
+                    系统采用清晰的 Controller、Service、Mapper 分层结构，将权限校验、状态流转、
+                    时间冲突与事务一致性等业务规则集中在服务层处理，便于后续维护和扩展。
+                </p>
+            </div>
+        </article>
+
+        <article class="content-card">
+            <div class="card-head">
+                <h2>技术栈</h2>
+            </div>
+            <div class="card-body">
+                <div class="tech-list">
+                    <span class="tech-tag">Java 17</span>
+                    <span class="tech-tag">Spring Boot</span>
+                    <span class="tech-tag">Spring MVC</span>
+                    <span class="tech-tag">Spring Security</span>
+                    <span class="tech-tag">MyBatis</span>
+                    <span class="tech-tag">MySQL</span>
+                    <span class="tech-tag">Thymeleaf</span>
+                    <span class="tech-tag">Maven</span>
+                </div>
+                <div class="project-note">
+                    NetLab 注重业务流程完整性和数据一致性，以易于理解和维护的单体架构实现核心功能。
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <footer class="page-footer">
+        NetLab · 网络实验室设备预约与流转管理平台
+    </footer>
+</main>
+</body>
+</html>
