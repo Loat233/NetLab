@@ -66,7 +66,7 @@ public class SecurityConfiguration {
                 .rememberMe(conf -> {
                     conf.rememberMeParameter("remember-me");
                     conf.tokenRepository(repo);
-                    conf.tokenValiditySeconds(3600 * 7);
+                    conf.tokenValiditySeconds(3600 * 12);
                 })
                 .csrf(AbstractHttpConfigurer::disable)
                 .logout(conf -> {
