@@ -1,9 +1,8 @@
 package org.lostwind.netlab.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.lostwind.netlab.entity.*;
-import org.lostwind.netlab.enums.BorrowStatus;
-import org.lostwind.netlab.enums.DeviceStatus;
-import org.lostwind.netlab.enums.FaultStatus;
+import org.lostwind.netlab.enums.*;
 import org.lostwind.netlab.mapper.BorrowMapper;
 import org.lostwind.netlab.mapper.DeviceMapper;
 import org.lostwind.netlab.mapper.FaultRecordMapper;
@@ -14,10 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class FaultRecordService {
-    @Autowired
-    FaultRecordMapper faultRecordMapper;
     @Autowired
     private AccountService accountService;
     @Autowired
@@ -26,6 +24,11 @@ public class FaultRecordService {
     private ReservationService reservationService;
     @Autowired
     private DeviceService deviceService;
+    @Autowired
+    private OperationLogService operationLogService;
+
+    @Autowired
+    private FaultRecordMapper faultRecordMapper;
     @Autowired
     private DeviceMapper deviceMapper;
     @Autowired
@@ -104,6 +107,22 @@ public class FaultRecordService {
         if (rows != 1) {
             throw new IllegalStateException("故障单创建失败，请稍后重试");
         }
+
+        operationLogService.record(
+                BusinessType.FAULT,
+                faultRecord.getId(),
+                reporterId,
+                OperationType.REPORT_FAULT,
+                null,
+                FaultStatus.PENDING
+        );
+
+        log.info(
+                "用户创建故障单:faultRecordId={}, deviceId={}, reporterId={}",
+                faultRecord.getId(),
+                faultRecord.getDeviceId(),
+                reporterId
+        );
     }
 
 
@@ -148,6 +167,22 @@ public class FaultRecordService {
         if (deviceMapper.markDamaged(deviceId) != 1) {
             throw new IllegalStateException("设备状态已经发生改变");
         }
+
+        operationLogService.record(
+                BusinessType.FAULT,
+                faultRecord.getId(),
+                reporterId,
+                OperationType.REPORT_FAULT,
+                null,
+                FaultStatus.PENDING
+        );
+
+        log.info(
+                "管理员创建故障单:faultRecordId={}, deviceId={}, reporterId={}",
+                faultRecord.getId(),
+                faultRecord.getDeviceId(),
+                reporterId
+        );
     }
 
     // 管理员开始维修、处理故障单
@@ -189,6 +224,22 @@ public class FaultRecordService {
         if (recordRows != 1) {
             throw new IllegalArgumentException("故障单状态已发生改变");
         }
+
+        operationLogService.record(
+                BusinessType.FAULT,
+                recordId,
+                account.getId(),
+                OperationType.START_MAINTENANCE,
+                FaultStatus.PENDING,
+                FaultStatus.PROCESSING
+        );
+
+        log.info(
+                "设备开始维修:faultRecordId={}, deviceId={}, operatorId={}",
+                recordId,
+                device.getId(),
+                account.getId()
+        );
     }
 
     // 管理员选择故障单的维修结果
@@ -219,5 +270,22 @@ public class FaultRecordService {
         if (rows != 1) {
             throw new IllegalArgumentException("故障单状态更新失败");
         }
+
+        operationLogService.record(
+                BusinessType.FAULT,
+                recordId,
+                account.getId(),
+                OperationType.COMPLETE_MAINTENANCE,
+                FaultStatus.PROCESSING,
+                FaultStatus.RESOLVED
+        );
+
+        log.info(
+                "维修处理完成:faultRecordId={}, deviceId={}, resultStatus={}, operatorId={}",
+                recordId,
+                record.getDeviceId(),
+                status,
+                account.getId()
+        );
     }
 }

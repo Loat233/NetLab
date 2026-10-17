@@ -2,6 +2,7 @@ package org.lostwind.netlab.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.Email;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.SecureRandom;
 import java.util.Map;
 
+@Slf4j
 @Validated
 @Controller
 public class LogController {
@@ -92,6 +94,7 @@ public class LogController {
 
             return ResponseEntity.ok(Map.of("success", true, "message", "验证码发送成功"));
         } catch (MailException e) {
+            log.error("登录验证码邮件发送失败", e);
             session.removeAttribute(LAST_SEND_KEY);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("success", false, "message", "验证码发送失败，请稍后重试"));

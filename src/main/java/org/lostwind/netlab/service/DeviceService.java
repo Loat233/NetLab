@@ -1,7 +1,10 @@
 package org.lostwind.netlab.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.lostwind.netlab.entity.Device;
+import org.lostwind.netlab.enums.BusinessType;
 import org.lostwind.netlab.enums.DeviceStatus;
+import org.lostwind.netlab.enums.OperationType;
 import org.lostwind.netlab.mapper.DeviceMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,10 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class DeviceService {
     @Autowired
     DeviceMapper mapper;
+    @Autowired
+    OperationLogService operationLogService;
 
     // 条件查询设备
     public List<Device> getDeviceList(String keyword, Integer categoryId, Integer laboratoryId, DeviceStatus status) {
@@ -30,7 +36,7 @@ public class DeviceService {
 
     // 新增设备
     @Transactional
-    public void addDevice(Device device) {
+    public void addDevice(Device device, Integer operatorId) {
         Device existing = mapper.selectByAssetCode(device.getAssetCode());
 
         if (existing != null) {
@@ -42,14 +48,30 @@ public class DeviceService {
         if (row != 1) {
             throw new IllegalStateException("新增设备失败");
         }
+
+        operationLogService.record(
+                BusinessType.DEVICE,
+                device.getId(),
+                operatorId,
+                OperationType.ADD_DEVICE,
+                null,
+                DeviceStatus.AVAILABLE
+        );
+
+        log.info(
+                "添加新设备, deviceId={}, operatorId={}",
+                device.getId(),
+                operatorId
+        );
     }
 
     // 修改设备状态
-    public void updateDevice(Device device) {
+    @Transactional
+    public void updateDevice(Device device, Integer operatorId) {
         int id = device.getId();
 
         // 判断是否存在目标设备
-        getDeviceById(id);
+        Device old = getDeviceById(id);
 
         // 判断更新后的资产编号是否存在
         Device existing = mapper.selectByAssetCode(device.getAssetCode());
@@ -61,6 +83,21 @@ public class DeviceService {
         if (row != 1) {
             throw new IllegalStateException("修改设备失败");
         }
+
+        operationLogService.record(
+                BusinessType.DEVICE,
+                id,
+                operatorId,
+                OperationType.UPDATE_DEVICE,
+                old.getStatus(),
+                old.getStatus()
+        );
+
+        log.info(
+                "修改设备信息, deviceId={}, operatorId={}",
+                device.getId(),
+                operatorId
+        );
     }
 
     // 修改设备状态

@@ -1,11 +1,10 @@
 package org.lostwind.netlab.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.lostwind.netlab.entity.BorrowRecord;
 import org.lostwind.netlab.entity.Device;
 import org.lostwind.netlab.entity.Reservation;
-import org.lostwind.netlab.enums.BorrowStatus;
-import org.lostwind.netlab.enums.DeviceStatus;
-import org.lostwind.netlab.enums.ReservationStatus;
+import org.lostwind.netlab.enums.*;
 import org.lostwind.netlab.mapper.BorrowMapper;
 import org.lostwind.netlab.mapper.DeviceMapper;
 import org.lostwind.netlab.mapper.FaultRecordMapper;
@@ -19,12 +18,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BorrowService {
     @Autowired
     ReservationService reservationService;
     @Autowired
     DeviceService deviceService;
+    @Autowired
+    OperationLogService operationLogService;
 
     @Autowired
     private BorrowMapper borrowMapper;
@@ -103,6 +105,23 @@ public class BorrowService {
         if (deviceMapper.markBorrowed(device.getId()) != 1) {
             throw new IllegalStateException("设备更新失败");
         }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                reservationId,
+                operatorId,
+                OperationType.CONFIRM_BORROW,
+                ReservationStatus.APPROVED,
+                ReservationStatus.BORROWED
+        );
+
+        log.info(
+                "设备确认借出, reservationId={}, borrowRecordId={}, operatorId={}, deviceId={}",
+                reservationId,
+                record.getId(),
+                operatorId,
+                device.getId()
+        );
     }
 
     // 管理员确认归还
@@ -161,6 +180,23 @@ public class BorrowService {
         if (deviceRows != 1) {
             throw new IllegalStateException("该借用记录对应的设备状态更新失败，请稍后再试");
         }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                id,
+                operatorId,
+                OperationType.CONFIRM_RETURN,
+                ReservationStatus.RETURN_PENDING,
+                ReservationStatus.COMPLETED
+        );
+
+        log.info(
+                "设备确认归还, reservationId={}, operatorId={}, deviceId={}, nextDeviceStatus={}",
+                id,
+                operatorId,
+                device.getId(),
+                faultRecord > 0 ? DeviceStatus.DAMAGED : DeviceStatus.AVAILABLE
+        );
     }
 
     // 用户申请归还
@@ -186,5 +222,21 @@ public class BorrowService {
         if (reservationRows != 1) {
             throw new IllegalStateException("该借用记录所对应的预约状态更新失败，请稍后重试");
         }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                id,
+                accountId,
+                OperationType.REQUEST_RETURN,
+                ReservationStatus.BORROWED,
+                ReservationStatus.RETURN_PENDING
+        );
+
+        log.info(
+                "学生申请归还, reservationId={}, accountId={}, overdue={}",
+                id,
+                accountId,
+                overdue
+        );
     }
 }

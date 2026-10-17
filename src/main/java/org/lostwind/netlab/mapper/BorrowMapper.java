@@ -30,6 +30,7 @@ public interface BorrowMapper {
         insert into borrow_record (borrow_code,reservation_id,borrow_operator_id,return_operator_id,borrowed_at,due_at,requested_at,return_at,status,remark)
             values (#{borrowCode},#{reservationId},#{borrowOperatorId},#{returnOperatorId},#{borrowedAt},#{dueAt},#{requestedAt},#{returnAt},#{status},#{remark})
     """)
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(BorrowRecord record);
 
     @Update("""

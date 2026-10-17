@@ -33,6 +33,7 @@ public interface FaultRecordMapper {
         insert into device_fault_record (device_id, reporter_id, borrow_record_id, status, description, reported_at, resolved_at)
         values (#{deviceId}, #{reporterId}, #{borrowRecordId}, #{status}, #{description}, #{reportedAt}, #{resolvedAt})
     """)
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(FaultRecord record);
 
     @Update("update device_fault_record set status = #{status} where id = #{id}")

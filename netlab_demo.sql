@@ -258,7 +258,28 @@ CREATE TABLE `persistent_logins` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- =========================================================
--- 10. 基础用户（密码全部为 123456）
+-- 10. 操作日志表
+-- =========================================================
+
+CREATE TABLE `operation_log` (
+ `id` INT NOT NULL AUTO_INCREMENT,
+ `business_type` VARCHAR(32) NOT NULL,
+ `business_id` INT NOT NULL,
+ `operator_id` INT NOT NULL,
+ `operation` VARCHAR(64) NOT NULL,
+ `previous_status` VARCHAR(32) NULL,
+ `next_status` VARCHAR(32) NOT NULL,
+ `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY (`id`),
+ KEY `idx_operation_business`
+     (`business_type`, `business_id`, `created_at`),
+ KEY `idx_operation_operator` (`operator_id`),
+ CONSTRAINT `fk_operation_operator`
+     FOREIGN KEY (`operator_id`) REFERENCES `account` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =========================================================
+-- 11. 基础用户（密码全部为 123456）
 -- =========================================================
 
 INSERT INTO `account` (`id`, `username`, `password`, `role`) VALUES
@@ -270,7 +291,7 @@ INSERT INTO `account` (`id`, `username`, `password`, `role`) VALUES
  '$2a$10$pRuP23kDLqm68Xi9mG5KxOgeQkLazmFN5XP6eaiB5sdhmB4ZxrjSK', 'USER');
 
 -- =========================================================
--- 11. 实验室与设备分类
+-- 12. 实验室与设备分类
 -- =========================================================
 
 INSERT INTO `laboratory`
@@ -289,7 +310,7 @@ INSERT INTO `device_category`
 (7, 'SERVER', '服务器');
 
 -- =========================================================
--- 12. 演示设备
+-- 13. 演示设备
 -- =========================================================
 
 INSERT INTO `device`
@@ -337,7 +358,7 @@ INSERT INTO `device`
  '2026-10-15 08:35:00', '2026-10-15 08:35:00');
 
 -- =========================================================
--- 13. 演示预约
+-- 14. 演示预约
 -- =========================================================
 
 INSERT INTO `reservation`
@@ -411,7 +432,7 @@ INSERT INTO `reservation`
  '2026-10-15 14:10:00', '2026-10-15 14:30:00');
 
 -- =========================================================
--- 14. 借用记录
+-- 15. 借用记录
 -- =========================================================
 
 INSERT INTO `borrow_record`
@@ -440,7 +461,7 @@ INSERT INTO `borrow_record`
  'RETURNED', '逾期 1 小时申请归还，设备验收正常。', 1);
 
 -- =========================================================
--- 15. 故障记录
+-- 16. 故障记录
 -- =========================================================
 
 INSERT INTO `device_fault_record`
@@ -464,7 +485,7 @@ INSERT INTO `device_fault_record`
  '2026-10-15 14:00:00', NULL);
 
 -- =========================================================
--- 16. 首页留言
+-- 17. 首页留言
 -- =========================================================
 
 INSERT INTO `review` (`id`, `account_id`, `content`) VALUES
@@ -473,7 +494,7 @@ INSERT INTO `review` (`id`, `account_id`, `content`) VALUES
 (3, 1, '请同学们按预约时间领取设备，使用后及时提交归还申请。');
 
 -- =========================================================
--- 17. 初始化结果检查
+-- 18. 初始化结果检查
 -- =========================================================
 
 SELECT 'account' AS `table_name`, COUNT(*) AS `row_count` FROM `account`

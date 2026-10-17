@@ -1,10 +1,13 @@
 package org.lostwind.netlab.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.lostwind.netlab.dto.ReservationRequest;
 import org.lostwind.netlab.entity.Account;
 import org.lostwind.netlab.entity.Device;
 import org.lostwind.netlab.entity.Reservation;
+import org.lostwind.netlab.enums.BusinessType;
 import org.lostwind.netlab.enums.DeviceStatus;
+import org.lostwind.netlab.enums.OperationType;
 import org.lostwind.netlab.enums.ReservationStatus;
 import org.lostwind.netlab.mapper.DeviceMapper;
 import org.lostwind.netlab.mapper.ReservationMapper;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class ReservationService {
     @Autowired
@@ -26,6 +30,8 @@ public class ReservationService {
     DeviceService deviceService;
     @Autowired
     AccountService accountService;
+    @Autowired
+    OperationLogService operationLogService;
 
     // 根据预约单id得到预约单(管理员方法，无访问限制)
     public Reservation getReservationById(Integer reservationId) {
@@ -100,8 +106,8 @@ public class ReservationService {
             throw new IllegalArgumentException("结束时间必须晚于开始时间");
         }
 
-        // 获取设备并判断设备是否为空
-        Device device = deviceService.getDeviceById(request.getDeviceId());
+        // 获取设备并判断设备是否为空,同时加设备锁
+        Device device = deviceMapper.selectByIdForUpdate(request.getDeviceId());
 
         // 判断设备状态是否为可借
         DeviceStatus status = device.getStatus();
@@ -109,9 +115,9 @@ public class ReservationService {
             throw new IllegalArgumentException("当前设备不可预约");
         }
 
-        // 检查是否存在时间冲突的预约
-        int conflicts = reservationMapper.countConflict(request.getDeviceId(), request.getStartTime(), request.getEndTime());
-        if (conflicts > 0) {
+        // 检查是否存在时间冲突的预约,同时给查询记录加锁
+        List<Integer> conflicts = reservationMapper.selectConflictIdsForUpdate(request.getDeviceId(), request.getStartTime(), request.getEndTime());
+        if (!conflicts.isEmpty()) {
            throw new IllegalArgumentException("该时段已经被预约");
         }
 
@@ -125,7 +131,23 @@ public class ReservationService {
         reservation.setPurpose(request.getPurpose());
         reservation.setStatus(ReservationStatus.PENDING);
 
-        reservationMapper.insert(reservation);
+        if(reservationMapper.insert(reservation) != 1) {
+            throw new IllegalArgumentException("预约单添加失败");
+        }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                reservation.getId(),
+                applicantId,
+                OperationType.CREATE_RESERVATION,
+                null,
+                ReservationStatus.PENDING
+        );
+
+        log.info("预约创建成功:reservationId={}, applicationId={}, deviceId={}",
+                reservation.getId(),
+                applicantId,
+                reservation.getDeviceId());
     }
 
 
@@ -150,6 +172,19 @@ public class ReservationService {
         if (rows != 1) {
             throw new IllegalStateException("预约状态已经发生改变，请重试");
         }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                id,
+                applicantId,
+                OperationType.CANCEL_RESERVATION,
+                reservation.getStatus(),
+                ReservationStatus.CANCELLED
+        );
+
+        log.info("预约已取消:reservationId={}, applicantId={}",
+                id,
+                applicantId);
     }
 
 
@@ -191,6 +226,10 @@ public class ReservationService {
         // 检查该设备是否存在其他有冲突时间的预约，并对查询数据加锁
         List<Integer> conflicts = reservationMapper.selectConflictIdsForUpdate(reservation.getDeviceId(), reservation.getStartTime(), reservation.getEndTime());
         if (!conflicts.isEmpty()) {
+            log.warn("预约审批冲突:reservationId={}, deviceId={}, conflictCount={}",
+                    reservationId,
+                    reservation.getDeviceId(),
+                    conflicts.size());
             throw new IllegalArgumentException("该时段与其他已批准预约冲突，无法批准");
         }
 
@@ -199,6 +238,20 @@ public class ReservationService {
         if (rows != 1) {
             throw new IllegalStateException("预约状态已经发生改变，请重试");
         }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                reservation.getId(),
+                reviewerId,
+                OperationType.APPROVE_RESERVATION,
+                ReservationStatus.PENDING,
+                ReservationStatus.APPROVED
+        );
+
+        log.info("预约已审批通过:reservationId={}, reviewerId={}, deviceId={}",
+                reservationId,
+                reviewerId,
+                reservation.getDeviceId());
     }
 
     // 管理员拒绝预约
@@ -228,5 +281,18 @@ public class ReservationService {
         if (rows != 1) {
             throw new IllegalStateException("预约状态已经发生改变，请重试");
         }
+
+        operationLogService.record(
+                BusinessType.RESERVATION,
+                reservationId,
+                reviewerId,
+                OperationType.REJECT_RESERVATION,
+                reservation.getStatus(),
+                ReservationStatus.REJECTED
+        );
+
+        log.info("预约已拒绝:reservationId={}, reviewerId={}",
+                reservationId,
+                reviewerId);
     }
 }

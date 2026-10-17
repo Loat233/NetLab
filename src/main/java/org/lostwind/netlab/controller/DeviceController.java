@@ -1,11 +1,14 @@
 package org.lostwind.netlab.controller;
 
+import org.lostwind.netlab.entity.Account;
 import org.lostwind.netlab.entity.Device;
 import org.lostwind.netlab.enums.DeviceStatus;
+import org.lostwind.netlab.service.AccountService;
 import org.lostwind.netlab.service.CategoryService;
 import org.lostwind.netlab.service.DeviceService;
 import org.lostwind.netlab.service.LaboratoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +24,8 @@ public class DeviceController {
     CategoryService categoryService;
     @Autowired
     LaboratoryService laboratoryService;
+    @Autowired
+    AccountService accountService;
 
 
 
@@ -69,10 +74,17 @@ public class DeviceController {
         管理员添加设备业务
     */
     @PostMapping("/admin/devices/add")
-    public String addDevice(@ModelAttribute Device device, RedirectAttributes attributes) {
-        device.setStatus(DeviceStatus.AVAILABLE);
-        deviceService.addDevice(device);
-        attributes.addFlashAttribute("message", "设备添加成功");
+    public String addDevice(@ModelAttribute Device device,
+                            Authentication authentication,
+                            RedirectAttributes attributes) {
+        try {
+            device.setStatus(DeviceStatus.AVAILABLE);
+            Account account = accountService.getAccountByUsername(authentication.getName());
+            deviceService.addDevice(device, account.getId());
+            attributes.addFlashAttribute("message", "设备添加成功");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            attributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/devices";
     }
 
@@ -95,11 +107,17 @@ public class DeviceController {
     @PostMapping("/admin/devices/{id}/edit")
     public String editDevice(@PathVariable Integer id,
                              @ModelAttribute Device device,
+                             Authentication authentication,
                              RedirectAttributes attributes){
-        // 以路径的id为准，防止篡改
-        device.setId(id);
-        deviceService.updateDevice(device);
-        attributes.addFlashAttribute("message", "设备信息修改成功");
+        try {
+            // 以路径的id为准，防止篡改
+            device.setId(id);
+            Account account = accountService.getAccountByUsername(authentication.getName());
+            deviceService.updateDevice(device, account.getId());
+            attributes.addFlashAttribute("message", "设备信息修改成功");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            attributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/devices";
     }
 }
